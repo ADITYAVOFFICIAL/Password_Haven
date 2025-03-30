@@ -326,9 +326,9 @@ function calculateCrackTime(length: number, poolSize: number, hasCommonPatterns:
   
   // Calculate hardware-specific estimates
   // Standard bcrypt cost=12 hash rates
-  const CPU_HASH_RATE = 50; // hashes per second
-  const NORMAL_GPU_HASH_RATE = 2000; // hashes per second
-  const HIGH_END_GPU_HASH_RATE = 8000; // hashes per second
+  const CPU_HASH_RATE = 45; // CPU bcrypt (cost=12) ~45-60 h/s on modern CPU
+const NORMAL_GPU_HASH_RATE = 1900; // RTX 3060 bcrypt (cost=12) ~1800-2000 h/s
+const HIGH_END_GPU_HASH_RATE = 24000; // RTX 4090 bcrypt (cost=12) ~24000 h/s
   
   let cpuTimeInSeconds = combinations / CPU_HASH_RATE / 2;
   let normalGpuTimeInSeconds = combinations / NORMAL_GPU_HASH_RATE / 2;

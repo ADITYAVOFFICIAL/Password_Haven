@@ -1,7 +1,8 @@
 
 import { useState, useEffect } from "react";
 import { analyzePassword, type PasswordAnalysisResponse, checkPasswordBreached } from "@/api/passwordService";
-import { analyzePasswordWithGemini } from "@/api/geminiService";
+// import { analyzePasswordWithGemini } from "@/api/geminiService";
+import { analyzePasswordWithOllama, type PasswordAnalysisContext } from "@/api/ollamaService";
 import { DEFAULT_FEEDBACK } from "@/constants/config";
 import { calculatePasswordStatistics } from "@/utils/formatTTC";
 import { analyzePasswordAdvanced } from "@/utils/passwordAnalysis";
@@ -175,17 +176,49 @@ export function usePasswordAnalysis() {
     
     // Set up debounce timer for AI analysis
     const aiTimer = setTimeout(async () => {
-      if (password.length >= 4) { // Only run AI analysis for passwords with minimum length
+      // Ensure we have the necessary data before calling the AI
+      if (password.length >= 4 && zxcvbnResult && stats) {
         setIsAiLoading(true);
         
         try {
-          const aiResult = await analyzePasswordWithGemini(password);
+          // Calculate the CURRENT stats right before sending to ensure they're fresh
+          const currentPasswordStats = {
+            length: password.length,
+            uppercase: (password.match(/[A-Z]/g) || []).length,
+            lowercase: (password.match(/[a-z]/g) || []).length,
+            numbers: (password.match(/[0-9]/g) || []).length,
+            symbols: (password.match(/[^A-Za-z0-9]/g) || []).length
+          };
+          
+          // Log the stats right before creating the context for verification
+          console.log("Current password stats before AI call:", {
+            password,
+            passwordLength: password.length,
+            currentStats: currentPasswordStats
+          });
+    
+          const analysisContext: PasswordAnalysisContext = {
+            score: zxcvbnResult.score,
+            entropy: calculatedStats.entropy,
+            composition: {
+              // Use the freshly calculated stats
+              total: password.length, // Use direct password.length instead of passwordStats.length
+              uppercase: currentPasswordStats.uppercase,
+              lowercase: currentPasswordStats.lowercase,
+              numbers: currentPasswordStats.numbers,
+              symbols: currentPasswordStats.symbols,
+            },
+            crackTimeEstimates: {
+              bruteForce: zxcvbnResult.timeEstimateBruteForce,
+              smartGuessing: zxcvbnResult.timeEstimateSmartGuessing,
+              hardware: zxcvbnResult.hardwareEstimates,
+            },
+          };
+          
+          const aiResult = await analyzePasswordWithOllama(password, analysisContext);
           setAiAnalysis(aiResult);
         } catch (err) {
-          console.error("AI password analysis error:", err);
-          // Don't set error state to avoid UI disruption - we'll use fallback data
-        } finally {
-          setIsAiLoading(false);
+          // Rest of error handling code...
         }
       }
     }, 600); // 600ms debounce for AI analysis

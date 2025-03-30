@@ -1,9 +1,21 @@
+import { MOCK_RESPONSE, BREACH_DATABASES, ATTACK_METHODS /*, EXTENDED_TTC_ESTIMATES is not used here */ } from "@/constants/config";
+import { calculatePasswordStatistics } from "@/utils/formatTTC"; // Ensure this path is correct
+import { analyzePasswordWithOllama, type AiAnalysisResult } from "@/api/ollamaService";
+// import { analyzePasswordWithGemini } from "@/api/geminiService"; // Keep for potential future use
 
-// Utility functions for time-to-crack (TTC) calculations and formatting
+// Read the environment variable (will be undefined if not set, defaulting to Gemini path)
+// const modelSource = import.meta.env.VITE_MODEL_SOURCE || 'gemini'; // Default to gemini if not set
 
-import { MOCK_RESPONSE, BREACH_DATABASES, ATTACK_METHODS, EXTENDED_TTC_ESTIMATES } from "@/constants/config";
-import { calculatePasswordStatistics } from "@/utils/formatTTC";
-
+/**
+ * API Switcher: Decides which AI service to call based on environment variable.
+ * NOTE: This function is currently bypassed by the usePasswordAnalysis hook,
+ *       which calls analyzePasswordWithOllama directly.
+ */
+export async function analyzePasswordAPI(password: string): Promise<AiAnalysisResult> { // Ensure return type matches AiAnalysisResult
+  // console.log("Routing AI analysis to Ollama (hardcoded)...");
+  return analyzePasswordWithOllama(password);
+  // REMOVED: Conditional logic for Gemini
+}
 // Password analysis response type
 export type PasswordAnalysisResponse = {
   strength: number; // 0-4 strength score
@@ -35,110 +47,68 @@ export type PasswordAnalysisResponse = {
 const isDev = process.env.NODE_ENV === "development";
 
 /**
- * Analyzes a password by sending it to the backend API
+ * Analyzes a password using ONLY local, client-side calculations.
  */
 export async function analyzePassword(password: string): Promise<PasswordAnalysisResponse> {
+  await new Promise(resolve => setTimeout(resolve, 10)); // Tiny delay for async consistency
+
   try {
-    // If the password is empty, return a default response
+    // Handle empty password
     if (!password) {
       return {
-        strength: 0,
-        score: 0,
-        timeToHack: "Instantly",
-        timeToHackSmart: "Instantly",
-        entropy: 0,
+        strength: 0, score: 0, timeToHack: "Instantly", timeToHackSmart: "Instantly", entropy: 0,
         feedback: ["Enter a password to see its strength"],
         statistics: {
-          characterTypes: {
-            lowercase: false,
-            uppercase: false,
-            numbers: false,
-            symbols: false,
-            count: 0
-          },
-          hasCommonPatterns: false,
-          hasSequentialChars: false,
-          hasRepeatedChars: false
-        }
+          characterTypes: { lowercase: false, uppercase: false, numbers: false, symbols: false, count: 0 },
+          hasCommonPatterns: false, hasSequentialChars: false, hasRepeatedChars: false
+        },
+        hardwareEstimates: { cpu: "N/A", normalGpu: "N/A", highEndGpu: "N/A" }
       };
     }
-    
-    // In development, we can use mock data for testing
-    if (isDev && false) { // Change to true to use mock data
-      // Simulate API delay
+
+    // Optional: Mock data logic
+    if (isDev && false) { // Set to true to use mock data
+      console.warn("Using DEV mock data for basic password analysis.");
       await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Return mock response based on password length for testing
       const strength = Math.min(4, Math.floor(password.length / 3));
       return {
-        ...MOCK_RESPONSE,
-        strength,
-        score: strength * 25,
-        timeToHack: ["Instantly", "1 hour", "3 days", "5 months", "+300 years"][strength],
-        timeToHackSmart: ["Instantly", "A few minutes", "A few days", "A few weeks", "Several decades"][strength],
-        entropy: password.length * 4,
+        strength, score: strength * 25, timeToHack: `Mock ${strength}`, timeToHackSmart: `MockSmart ${strength}`, entropy: password.length * 4,
+        feedback: [`Mock feedback str ${strength}`],
+        // FIX: Provide a valid mock statistics object
         statistics: {
-          characterTypes: {
-            lowercase: /[a-z]/.test(password),
-            uppercase: /[A-Z]/.test(password),
-            numbers: /[0-9]/.test(password),
-            symbols: /[^A-Za-z0-9]/.test(password),
-            count: [/[a-z]/.test(password), /[A-Z]/.test(password), /[0-9]/.test(password), /[^A-Za-z0-9]/.test(password)].filter(Boolean).length
-          },
-          hasCommonPatterns: false,
-          hasSequentialChars: false,
-          hasRepeatedChars: false
-        }
-      };
-    }
-    
-    // Make the actual API call
-    const response = await fetch(import.meta.env.VITE_API_ENDPOINT || "https://httpbin.org/post", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ password }),
-    });
-    
-    if (!response.ok) {
-      throw new Error(`API request failed with status ${response.status}`);
-    }
-    
-    // For testing with httpbin.org fallback
-    if (response.url.includes("httpbin.org")) {
-      // Use improved analysis algorithm
-      return generateAdvancedAnalysis(password);
-    }
-    
-    return await response.json();
-  } catch (error) {
-    console.error("Error analyzing password:", error);
-    
-    // Return a fallback response with error message
-    return {
-      strength: 0,
-      score: 0,
-      timeToHack: "Error",
-      timeToHackSmart: "Error",
-      entropy: 0,
-      feedback: ["Could not analyze password", "Please try again later"],
-      statistics: {
-        characterTypes: {
-          lowercase: false,
-          uppercase: false,
-          numbers: false,
-          symbols: false,
-          count: 0
+            characterTypes: { lowercase: true, uppercase: strength > 1, numbers: strength > 2, symbols: strength > 3, count: 1 + (strength > 1 ? 1:0) + (strength > 2 ? 1:0) + (strength > 3 ? 1:0) },
+            hasCommonPatterns: strength < 2,
+            hasSequentialChars: strength < 1,
+            hasRepeatedChars: strength < 1
         },
-        hasCommonPatterns: false,
-        hasSequentialChars: false,
-        hasRepeatedChars: false
-      }
+        hardwareEstimates: { cpu: "MockCPU", normalGpu: "MockGPU", highEndGpu: "MockHiGPU" }
+      };
+      // The code after return is unreachable, but the 'return' itself makes the function valid.
+    }
+
+    // --- Perform local analysis directly ---
+    // console.log("Performing local analysis for basic metrics using generateAdvancedAnalysis.");
+    // generateAdvancedAnalysis should now return the complete PasswordAnalysisResponse structure
+    const analysisResult = generateAdvancedAnalysis(password);
+
+    // REMOVED: Redundant check for hardwareEstimates, should be handled within generateAdvancedAnalysis
+
+    return analysisResult;
+
+  } catch (error) {
+    console.error("Error during local password analysis (generateAdvancedAnalysis):", error);
+    // Return a consistent error response structure
+    return {
+      strength: 0, score: 0, timeToHack: "Error", timeToHackSmart: "Error", entropy: 0,
+      feedback: ["Could not analyze password locally", error instanceof Error ? error.message : "Unknown error"],
+      statistics: {
+        characterTypes: { lowercase: false, uppercase: false, numbers: false, symbols: false, count: 0 },
+        hasCommonPatterns: false, hasSequentialChars: false, hasRepeatedChars: false
+      },
+      hardwareEstimates: { cpu: "Error", normalGpu: "Error", highEndGpu: "Error" }
     };
   }
 }
-
 /**
  * Check if a password is potentially in a breach database
  * (Note: This is a client-side estimation only - not a real breach check)

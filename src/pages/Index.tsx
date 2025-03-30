@@ -77,7 +77,7 @@ const Index = () => {
           </p>
         </div>
         
-        {showApiKeyAlert && (
+        {/* {showApiKeyAlert && (
           <Alert className="mb-6 bg-amber-50 border-amber-200 max-w-2xl mx-auto">
             <AlertDescription className="flex items-start gap-2">
               <Brain className="h-5 w-5 text-amber-500 mt-0.5 shrink-0" />
@@ -87,7 +87,7 @@ const Index = () => {
               </div>
             </AlertDescription>
           </Alert>
-        )}
+        )} */}
         
         <div className={`glass rounded-2xl p-5 md:p-8 max-w-2xl mx-auto shadow-lg transition-all duration-1000 delay-300 ${mounted ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-10'}`}>
           <div className="mb-8">

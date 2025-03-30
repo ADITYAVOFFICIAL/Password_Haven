@@ -73,24 +73,59 @@ Be specific and concise in your feedback, providing exact time-to-crack estimate
 
 // Common breach databases and attack methods (for reference in feedback)
 export const BREACH_DATABASES = [
-  "RockYou 2024",
-  "RockYou 2021",
-  "LinkedIn",
-  "Adobe",
-  "Yahoo",
-  "Dropbox",
-  "MySpace"
+  // Common password lists often used in attacks
+  "RockYou (Common Wordlist)", // Original RockYou is older, often just referenced like this
+  "Collection #1 (Large Compilation)", // Massive compilation breach
+
+  // Major Service Breaches
+  "LinkedIn (2012, 2021)",
+  "Adobe (2013)",
+  "Yahoo (2013-2014)",
+  "MySpace (2008-2013)",
+  "Dropbox (2012)",
+  "Marriott/Starwood (2014-2018)",
+  "Equifax (2017)",
+  "Canva (2019)",
+  "Zynga (2019)",
+  "Facebook (Various Incidents)", // Often data scraping rather than direct breach
+
+  // More Recent Examples (Illustrative)
+  "Twitter (2022 - API Abuse)",
+  "T-Mobile (Multiple Incidents)",
+  "Exploit.in (Compilation)", // Another large compilation
 ];
 
+/**
+ * Common methods attackers use to compromise passwords or accounts.
+ * Used for illustrative feedback.
+ */
 export const ATTACK_METHODS = [
-  "Smart guessing algorithm",
-  "Dictionary attack",
-  "Brute force attack",
-  "Rainbow table attack",
-  "Pattern matching",
-  "Rule-based attack",
-  "Credential stuffing",
-  "Social engineering"
+  // Password Guessing/Cracking
+  "Brute-force attack", // Trying every possible combination
+  "Dictionary attack", // Trying words from a list (dictionaries, common passwords)
+  "Rule-based attack", // Dictionary attack + common modifications (e.g., appending '123')
+  "Mask attack", // Brute-force with known patterns (e.g., Capital + 7 letters + number)
+  "Smart guessing algorithm", // AI/ML-based pattern analysis and guessing
+  "Pattern matching", // Exploiting sequences, repeats, keyboard patterns
+
+  // Precomputed Hash Attacks
+  "Rainbow table attack", // Using precomputed hashes to reverse password hashes (less common with proper salting)
+  "Lookup table attack", // General term for using precomputed values
+
+  // Account Takeover Methods
+  "Credential stuffing", // Trying username/password pairs from breaches on other sites
+  "Password spraying", // Trying one common password against many usernames
+
+  // Exploiting Humans or Systems
+  "Phishing attack", // Tricking users into revealing credentials
+  "Malware/Keylogger", // Software capturing keystrokes or stored passwords
+  "Social engineering", // Manipulating people to gain access or information
+  "Man-in-the-middle (MitM) attack", // Intercepting network traffic (less common for passwords with HTTPS)
+  "Session hijacking", // Stealing active login sessions
+
+  // Other Relevant Concepts
+  "Weak Hashing Algorithm", // Exploiting insecure storage methods
+  "Lack of Salting", // Makes precomputation attacks (like rainbow tables) easier
 ];
 
 // Extended time-to-crack estimates with more precise categories
