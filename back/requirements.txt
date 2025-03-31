@@ -1,0 +1,30 @@
+# requirements.txt
+
+# --- Core Web Framework ---
+fastapi               # The main web framework used for the API
+
+# --- ASGI Server ---
+# Needed to run the FastAPI application (standard includes performance extras)
+uvicorn[standard]
+
+# --- HIBP Offline Checker ---
+pwnedpasswords-offline # Library for checking passwords against local HIBP database
+
+# --- Ollama Client ---
+ollama                # Official Python client library for interacting with Ollama
+httpx                 # Required by the ollama client and used for catching connection errors
+
+# --- Data Validation ---
+# FastAPI relies on Pydantic for data validation and settings management
+pydantic
+
+# --- Environment Variable Loading ---
+# Used in config.py to load settings from .env files
+python-dotenv
+
+# --- Logging and Standard Libraries (Not listed below as they are built-in) ---
+# os
+# logging
+# typing
+# json
+# sys
