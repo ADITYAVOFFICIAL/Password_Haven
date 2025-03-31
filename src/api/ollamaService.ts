@@ -230,7 +230,7 @@ Execute the password security analysis for the password provided below, strictly
 `;
 // console.log("--- START Ollama Prompt ---");
 //   console.log("Sending the following prompt to Ollama backend:");
-  // console.log(prompt); // Log the complete prompt string
+  console.log(prompt); // Log the complete prompt string
   // console.log(contextString);
 //   console.log("--- END Ollama Prompt ---");
 
@@ -250,9 +250,9 @@ Execute the password security analysis for the password provided below, strictly
         ],
         // Include generationConfig if your backend uses it, otherwise it can be omitted
         generationConfig: {
-          temperature: 0.4,
-          topK: 40,
-          topP: 0.95,
+          temperature: 0.3,
+          topK: 30,
+          topP: 0.90,
           maxOutputTokens: 5120, // Adjust as needed
           responseMimeType: "application/json" // Backend expects this implicitly now
         }

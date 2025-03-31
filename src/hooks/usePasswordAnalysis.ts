@@ -224,7 +224,7 @@ export function usePasswordAnalysis() {
           
           const aiResult = await analyzePasswordWithOllama(password, analysisContext);
   // console.log("--- Hook received AI Result ---"); // <--- ADD THIS
-  console.log(aiResult);                        // <--- ADD THIS
+  // console.log(aiResult);                        // <--- ADD THIS
   setAiAnalysis(aiResult); // <--- State update happens here
   // console.log("--- Hook finished setAiAnalysis ---"); // <--- ADD THIS
 } catch (err) {

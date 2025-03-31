@@ -88,7 +88,7 @@ else:
 # Configuration for interacting with the local Ollama service.
 
 # Model name to use for analysis (e.g., "llama3", "mistral", "gemma:2b")
-OLLAMA_MODEL_DEFAULT = "gemma3:4b" # Changed default example
+OLLAMA_MODEL_DEFAULT = "gemma3:4b-it-q8_0" # Changed default example
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", OLLAMA_MODEL_DEFAULT)
 
 # Host URL of the running Ollama service (including protocol and port)
