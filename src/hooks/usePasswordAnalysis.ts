@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { analyzePassword, type PasswordAnalysisResponse, checkPasswordBreached } from "@/api/passwordService";
+import { analyzePassword, type PasswordAnalysisResponse, checkPasswordBreached,checkPasswordHibp,type HibpCheckResponse } from "@/api/passwordService";
 // import { analyzePasswordWithGemini } from "@/api/geminiService";
 import { analyzePasswordWithOllama, type PasswordAnalysisContext } from "@/api/ollamaService";
 import { DEFAULT_FEEDBACK } from "@/constants/config";
@@ -8,6 +8,11 @@ import { calculatePasswordStatistics } from "@/utils/formatTTC";
 import { analyzePasswordAdvanced } from "@/utils/passwordAnalysis";
 
 export function usePasswordAnalysis() {
+  // --- NEW HIBP STATE ---
+  const [hibpResult, setHibpResult] = useState<HibpCheckResponse | null>(null);
+  const [isHibpLoading, setIsHibpLoading] = useState(false);
+  const [hibpError, setHibpError] = useState<string | null>(null); // Optional error state
+  // --- END NEW HIBP STATE ---
   const [password, setPassword] = useState("");
   const [analysis, setAnalysis] = useState<PasswordAnalysisResponse>({
     strength: 0,
@@ -125,10 +130,13 @@ export function usePasswordAnalysis() {
         symbols: 0,
         other: 0
       });
+      setHibpResult(null);
       setIsLoading(false);
       setIsAiLoading(false);
       setIsBreachLoading(false);
+      setIsHibpLoading(false);
       setError(null);
+      setHibpError(null);
       return;
     }
     
@@ -178,8 +186,7 @@ export function usePasswordAnalysis() {
     const aiTimer = setTimeout(async () => {
       // Ensure we have the necessary data before calling the AI
       if (password.length >= 4 && zxcvbnResult && stats) {
-        setIsAiLoading(true);
-        
+        setIsAiLoading(true); // Set loading to true before the call
         try {
           // Calculate the CURRENT stats right before sending to ensure they're fresh
           const currentPasswordStats = {
@@ -190,12 +197,12 @@ export function usePasswordAnalysis() {
             symbols: (password.match(/[^A-Za-z0-9]/g) || []).length
           };
           
-          // Log the stats right before creating the context for verification
-          console.log("Current password stats before AI call:", {
-            password,
-            passwordLength: password.length,
-            currentStats: currentPasswordStats
-          });
+          // // Log the stats right before creating the context for verification
+          // console.log("Current password stats before AI call:", {
+          //   password,
+          //   passwordLength: password.length,
+          //   currentStats: currentPasswordStats
+          // });
     
           const analysisContext: PasswordAnalysisContext = {
             score: zxcvbnResult.score,
@@ -216,12 +223,31 @@ export function usePasswordAnalysis() {
           };
           
           const aiResult = await analyzePasswordWithOllama(password, analysisContext);
-          setAiAnalysis(aiResult);
-        } catch (err) {
-          // Rest of error handling code...
-        }
-      }
-    }, 600); // 600ms debounce for AI analysis
+  // console.log("--- Hook received AI Result ---"); // <--- ADD THIS
+  console.log(aiResult);                        // <--- ADD THIS
+  setAiAnalysis(aiResult); // <--- State update happens here
+  // console.log("--- Hook finished setAiAnalysis ---"); // <--- ADD THIS
+} catch (err) {
+  console.error("Error during AI analysis call OR state update in hook:", err);
+  // Optionally set an AI-specific error state here if needed
+  // e.g., setAiError(err instanceof Error ? err.message : "Unknown AI error");
+  // The analyzePasswordWithOllama function already returns a structured error
+  // in aiResult on fetch failure, so direct state update might be sufficient.
+  // If analyzePasswordWithOllama itself throws (e.g., network error before fetch),
+  // you might want to set a fallback state here:
+   setAiAnalysis({
+     suggestions: ["Error: AI analysis failed.", err instanceof Error ? err.message : "Could not communicate"],
+     reasoning: ["Could not get analysis from the backend service."],
+     improvedPassword: password // Return original password on error
+   });
+} finally {
+  setIsAiLoading(false); // <<< --- ENSURE THIS RUNS ALWAYS ---
+}
+} else {
+ // If conditions aren't met, ensure loading is false
+ setIsAiLoading(false);
+}
+}, 600);
     
     // Set up breach check with longer debounce
     const breachTimer = setTimeout(async () => {
@@ -242,11 +268,34 @@ export function usePasswordAnalysis() {
         }
       }
     }, 800); // 800ms debounce for breach check
-    
+     // --- NEW HIBP CHECK DEBOUNCE ---
+     const hibpTimer = setTimeout(async () => {
+      // Only run if password has some length (adjust min length if needed)
+      if (password.length >= 1) {
+        setIsHibpLoading(true);
+        setHibpError(null);
+        try {
+          const result = await checkPasswordHibp(password);
+          setHibpResult(result);
+        } catch (err) {
+          console.error("HIBP check error in hook:", err);
+          setHibpError(err instanceof Error ? err.message : "Failed HIBP check");
+          setHibpResult(null); // Clear previous results on error
+        } finally {
+          setIsHibpLoading(false);
+        }
+      } else {
+        // Clear results if password becomes too short after debounce starts
+        setHibpResult(null);
+        setHibpError(null);
+      }
+    }, 500); // 500ms debounce for HIBP check (adjust as needed)
+    // --- END NEW HIBP CHECK DEBOUNCE ---
     return () => {
       clearTimeout(timer);
       clearTimeout(aiTimer);
       clearTimeout(breachTimer);
+      clearTimeout(hibpTimer);
     };
   }, [password]);
   
@@ -255,14 +304,17 @@ export function usePasswordAnalysis() {
     setPassword,
     analysis,
     aiAnalysis,
-    breachAnalysis,
+    breachAnalysis, // Keep this for the pattern check results
+    hibpResult, // <-- Return HIBP result
     advancedAnalysis,
     stats,
     passwordStats,
-    isLoading,
+    isLoading, // zxcvbn loading
     isAiLoading,
-    isBreachLoading,
-    error,
-    hasPassword: password.length > 0
+    isBreachLoading, // Pattern check loading
+    isHibpLoading, // <-- Return HIBP loading state
+    error, // General error
+    hibpError, // <-- Return HIBP specific error
+    hasPassword: password.length > 0,
   };
 }

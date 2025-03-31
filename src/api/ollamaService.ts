@@ -33,7 +33,7 @@ export interface PasswordAnalysisContext {
 }
 
 // The URL where your Python FastAPI backend is running
-const OLLAMA_BACKEND_URL = "http://127.0.0.1:8000/generateContent"; // Default backend endpoint
+const OLLAMA_BACKEND_URL = "http://127.0.0.1:8000/ollama/generateContent"; // Default backend endpoint
 
 /**
  * Analyzes a password by sending it to the local Ollama FastAPI backend.
@@ -52,13 +52,13 @@ export async function analyzePasswordWithOllama(
   const lowerPercent = ((analysisContext.composition.lowercase / totalChars) * 100).toFixed(0);
   const numberPercent = ((analysisContext.composition.numbers / totalChars) * 100).toFixed(0);
   const symbolPercent = ((analysisContext.composition.symbols / totalChars) * 100).toFixed(0);
-  console.log("Password stats received:", {
-    total: analysisContext.composition.total,
-    uppercase: analysisContext.composition.uppercase,
-    lowercase: analysisContext.composition.lowercase,
-    numbers: analysisContext.composition.numbers,
-    symbols: analysisContext.composition.symbols
-  });
+  // console.log("Password stats received:", {
+  //   total: analysisContext.composition.total,
+  //   uppercase: analysisContext.composition.uppercase,
+  //   lowercase: analysisContext.composition.lowercase,
+  //   numbers: analysisContext.composition.numbers,
+  //   symbols: analysisContext.composition.symbols
+  // });
   const contextString = `
 **Password Analysis Context (Client-Side Calculation):**
 *   **Strength Score (zxcvbn):** ${analysisContext.score}/4
@@ -219,58 +219,6 @@ Execute analysis for password: "Sunshineblue"<|eot_id|>
 }
 <|eot_id|>
 
-**Example 4 (Remains Largely Same - Focus on Length/Pattern):**
-<|start_header_id|>user<|end_header_id|>
-**Password Analysis Context (Client-Side Calculation):**
-*   **Strength Score (zxcvbn):** 3/4
-*   **Entropy:** 65.5 bits
-*   **Character Composition (11 total):** Uppercase: 1 (9%), Lowercase: 6 (55%), Numbers: 3 (27%), Symbols: 1 (9%)
-*   **Estimated Time to Crack (zxcvbn):** Brute Force (3 yrs), Smart Guessing (2 mo)
-*   **Hardware-Specific Estimates (bcrypt):** CPU (+300y), Normal GPU (15y), High-End GPU (1 year)
-*   **Found in Breached Dataset (Hypothetical):** false
-
-Execute analysis for password: "MyP@ss1984!"<|eot_id|>
-<|start_header_id|>assistant<|end_header_id|>
-{
-  "suggestions": [
-    "Increase password length to 16+ characters to elevate crack times beyond feasible limits (~1 year on High-End GPU) into centuries. Example: 'MyS3cur3P@ssw0rd!84#'",
-    "Incorporate more than one symbol and ensure they are distinct and less common than '!'. Example: 'MyP@ss^1984*&'",
-    "Avoid easily guessable number patterns like birth years or historical years ('1984'). Use random digits. Example: 'MyP@ss!73g5$'"
-  ],
-  "reasoning": [
-    "While incorporating complexity, the suboptimal length (11 chars) remains the primary concern, capping high-end GPU crack times at approximately 1 year, which is insufficient for high-security contexts.",
-    "Reliance on a common substitution ('@' for 'a'), only one symbol type ('!'), and a predictable 4-digit number pattern ('1984') slightly reduces effective entropy against pattern-aware Smart Guessing attacks."
-  ],
-  "improvedPassword": "sE7^pL@kF*zQ9!vC"
-}
-<|eot_id|>
-
-**Example 5 (Updated Reasoning):**
-<|start_header_id|>user<|end_header_id|>
-**Password Analysis Context (Client-Side Calculation):**
-*   **Strength Score (zxcvbn):** 1/4
-*   **Entropy:** 30.0 bits
-*   **Character Composition (10 total):** Uppercase: 0 (0%), Lowercase: 10 (100%), Numbers: 0 (0%), Symbols: 0 (0%)
-*   **Estimated Time to Crack (zxcvbn):** Brute Force (15s), Smart Guessing (<1s)
-*   **Hardware-Specific Estimates (bcrypt):** CPU (3h), Normal GPU (10s), High-End GPU (<1s)
-*   **Found in Breached Dataset (Hypothetical):** false (but pattern is extremely common)
-
-Execute analysis for password: "qwertyqwerty"<|eot_id|>
-<|start_header_id|>assistant<|end_header_id|>
-{
-  "suggestions": [
-    "Immediately abandon keyboard patterns and repetitions; use random characters instead. Example: 'Xy7$!pQrS9@tUvWz#'",
-    "Increase length to 16+ characters to provide foundational brute-force resistance. Example: 'R@nd0mCh@rMix*Up6'",
-    "Incorporate uppercase letters, numbers, and diverse symbols for essential complexity. Example: 'Qy_PtRnB3g0n&!'"
-  ],
-  "reasoning": [
-    "Critically weak due to consisting solely of a repeated, common keyboard pattern ('qwerty'), making it instantly breakable via Pattern-Based Cracking tools and common in breach lists (Smart Guessing: <1 second).",
-    "Complete lack of character complexity (only lowercase) combined with the highly predictable structure results in extremely low entropy (30.0 bits) and trivial crack times (<10 seconds on GPU) despite the 10-character length."
-  ],
-  "improvedPassword": "aG5*mY9!sP@zQ#wE"
-}
-<|eot_id|>
-
 **--- End of Few-Shot Examples ---**
 
 <|eot_id|>
@@ -282,7 +230,7 @@ Execute the password security analysis for the password provided below, strictly
 `;
 // console.log("--- START Ollama Prompt ---");
 //   console.log("Sending the following prompt to Ollama backend:");
-  console.log(prompt); // Log the complete prompt string
+  // console.log(prompt); // Log the complete prompt string
   // console.log(contextString);
 //   console.log("--- END Ollama Prompt ---");
 
@@ -302,10 +250,10 @@ Execute the password security analysis for the password provided below, strictly
         ],
         // Include generationConfig if your backend uses it, otherwise it can be omitted
         generationConfig: {
-          temperature: 0.3,
+          temperature: 0.4,
           topK: 40,
           topP: 0.95,
-          maxOutputTokens: 1024, // Adjust as needed
+          maxOutputTokens: 5120, // Adjust as needed
           responseMimeType: "application/json" // Backend expects this implicitly now
         }
       })
@@ -348,7 +296,7 @@ Execute the password security analysis for the password provided below, strictly
       };
     }
 
-    console.log("Received analysis from Ollama backend.");
+    // console.log("Received analysis from Ollama backend.");
     return data; // Return the parsed data
 
   } catch (error) {

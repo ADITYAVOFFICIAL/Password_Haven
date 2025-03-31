@@ -49,7 +49,6 @@ export function AIImprovement({
     includeNumbers: true,
     includeSymbols: true
   });
-  
   const { 
     validatePassword, 
     validateMultiplePasswords,

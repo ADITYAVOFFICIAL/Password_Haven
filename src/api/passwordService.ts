@@ -1,19 +1,73 @@
 import { MOCK_RESPONSE, BREACH_DATABASES, ATTACK_METHODS /*, EXTENDED_TTC_ESTIMATES is not used here */ } from "@/constants/config";
 import { calculatePasswordStatistics } from "@/utils/formatTTC"; // Ensure this path is correct
-import { analyzePasswordWithOllama, type AiAnalysisResult } from "@/api/ollamaService";
+import { analyzePasswordWithOllama, type AiAnalysisResult, type PasswordAnalysisContext } from "@/api/ollamaService";
 // import { analyzePasswordWithGemini } from "@/api/geminiService"; // Keep for potential future use
 
 // Read the environment variable (will be undefined if not set, defaulting to Gemini path)
 // const modelSource = import.meta.env.VITE_MODEL_SOURCE || 'gemini'; // Default to gemini if not set
+export interface HibpCheckResponse {
+  password_provided: boolean;
+  check_method: string;
+  pwned: boolean; // The crucial field
+  status_message: string;
+}
+// --- NEW FUNCTION ---
+/**
+ * Checks a password against the backend's offline HIBP database.
+ * @param password The password string to check.
+ * @returns Promise resolving to the HIBP check result.
+ */
+export async function checkPasswordHibp(password: string): Promise<HibpCheckResponse> {
+  // Ensure your backend URL is correct (consider using an environment variable)
+  const backendUrl = "http://127.0.0.1:8000"; // Or process.env.REACT_APP_API_URL
+  const apiUrl = `${backendUrl}/hibp/check-password/?password=${encodeURIComponent(password)}`;
 
+  try {
+    const response = await fetch(apiUrl, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        // Add any other headers if required by your backend (e.g., API keys)
+      },
+    });
+
+    if (!response.ok) {
+      // Try to get error details from the backend response body
+      let errorDetails = `HTTP error! status: ${response.status}`;
+      try {
+        const errorData = await response.json();
+        errorDetails += ` - ${errorData.detail || JSON.stringify(errorData)}`;
+      } catch (jsonError) {
+        // If parsing JSON fails, use the status text
+        errorDetails += ` - ${response.statusText}`;
+      }
+      console.error("HIBP Check API Error Details:", errorDetails);
+      throw new Error(`HIBP check failed: ${response.status}`);
+    }
+
+    const data: HibpCheckResponse = await response.json();
+    return data;
+
+  } catch (error) {
+    console.error("Error calling HIBP check API:", error);
+    // Re-throw a more specific error or handle it as needed
+    if (error instanceof Error && error.message.startsWith('HIBP check failed')) {
+      throw error; // Re-throw specific HTTP errors
+    }
+    throw new Error("Network error or failed to connect to HIBP service.");
+  }
+}
 /**
  * API Switcher: Decides which AI service to call based on environment variable.
  * NOTE: This function is currently bypassed by the usePasswordAnalysis hook,
  *       which calls analyzePasswordWithOllama directly.
  */
-export async function analyzePasswordAPI(password: string): Promise<AiAnalysisResult> { // Ensure return type matches AiAnalysisResult
+export async function analyzePasswordAPI(
+  password: string, 
+  analysisContext: PasswordAnalysisContext
+): Promise<AiAnalysisResult> {
   // console.log("Routing AI analysis to Ollama (hardcoded)...");
-  return analyzePasswordWithOllama(password);
+  return analyzePasswordWithOllama(password, analysisContext);
   // REMOVED: Conditional logic for Gemini
 }
 // Password analysis response type
@@ -115,16 +169,13 @@ export async function analyzePassword(password: string): Promise<PasswordAnalysi
  */
 export async function checkPasswordBreached(password: string): Promise<{
   isPotentiallyBreached: boolean;
-  confidence: number;
+  confidence: number; // 0-100
   databases: string[];
   attackMethods: string[];
 }> {
-  // This is just a demo implementation
-  // In a real implementation, you would use a k-anonymity API like HIBP
-  
   // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 800));
-  
+  await new Promise(resolve => setTimeout(resolve, 300 + Math.random() * 500)); // Shorter delay
+
   if (!password) {
     return {
       isPotentiallyBreached: false,
