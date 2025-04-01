@@ -9,7 +9,8 @@ import { AIImprovement } from "@/components/AIImprovement";
 import { BreachCheck } from "@/components/BreachCheck";
 import { HibpCheckCard } from "@/components/HibpCheckCard";
 import { usePasswordAnalysis } from "@/hooks/usePasswordAnalysis";
-import { Shield, Lock, Brain, Database } from "lucide-react";
+import { Shield, Lock, Brain, Database , Activity} from "lucide-react";
+import { HashcatCrackCard } from "@/components/HashcatCrackCard";
 // import { Alert, AlertDescription } from "@/components/ui/alert";
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from "@/components/ui/navigation-menu";
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,7 @@ const Index = () => {
     aiAnalysis,
     breachAnalysis,
     hibpResult,
+    hashcatResult,
     advancedAnalysis,
     stats,
     passwordStats,
@@ -42,7 +44,9 @@ const Index = () => {
     isAiLoading,
     isBreachLoading,
     isHibpLoading,
+    isHashcatLoading,
     hibpError, 
+    hashcatError,
     hasPassword
   } = usePasswordAnalysis();
   
@@ -155,30 +159,37 @@ const Index = () => {
               />
             )}
           </div>
-          {/* ----- HIBP and Breach Check Section ----- */}
+          {/* ----- HIBP, Breach Pattern, and Hashcat Check Section ----- */}
           {hasPassword && ( // Only show these cards if there's a password
-            <>
-              {/* HIBP Check Card - Always shown when password exists */}
+            <div className="space-y-6"> {/* Add spacing between cards */}
+              {/* HIBP Check Card */}
               <HibpCheckCard
                 hibpResult={hibpResult}
                 isLoading={isHibpLoading}
                 error={hibpError}
-                className="mb-6" // Add margin between cards
+                // className="mb-6" // Removed margin, handled by space-y
               />
 
-              {/* Breach Check Card - Conditionally rendered based on HIBP or pattern check */}
-              {/* Renders if HIBP found it OR if password >= 5 chars and HIBP check is done or pending */}
-              {shouldShowBreachInfo && breachCheckDataToShow && breachCheckDataToShow.checked && ( // Ensure data is checked before rendering
+              {/* Breach Pattern Check Card */}
+              {shouldShowBreachInfo && breachCheckDataToShow && breachCheckDataToShow.checked && (
                  <BreachCheck
-                   password={password} // Pass password for context if needed by component
-                   breachData={breachCheckDataToShow} // Pass the prepared data
-                   isLoading={breachCheckLoadingState} // Pass the correct loading state
-                   // className="mt-6" // Removed redundant margin, handled by HibpCheckCard's mb-6
+                   password={password}
+                   breachData={breachCheckDataToShow}
+                   isLoading={breachCheckLoadingState}
+                   // className="mt-6" // Removed margin
                  />
                )}
-            </>
+
+              {/* Hashcat Crack Simulation Card */}
+              <HashcatCrackCard
+                crackResult={hashcatResult}
+                isLoading={isHashcatLoading}
+                error={hashcatError}
+                // className="mt-6" // Removed margin
+              />
+            </div>
           )}
-          {/* ----- End HIBP and Breach Check Section ----- */}
+          {/* ----- End Check Section ----- */}
           
           <div className="mt-8 text-center text-sm text-muted-foreground bg-slate-50/50 p-3 rounded-lg">
             <span className="flex items-center justify-center gap-1.5">

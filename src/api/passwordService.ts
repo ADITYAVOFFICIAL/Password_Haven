@@ -57,6 +57,72 @@ export async function checkPasswordHibp(password: string): Promise<HibpCheckResp
     throw new Error("Network error or failed to connect to HIBP service.");
   }
 }
+// --- Hashcat Cracker Types and Function ---
+
+// Request model mirroring backend's CrackRequest
+export interface HashcatCrackRequest {
+  hash_value: string;
+  hash_mode: number;
+  wordlist_filename: string;
+}
+
+// Response model mirroring backend's CrackResponse
+export interface HashcatCrackResponse {
+  status: 'success' | 'failed' | 'error'; // More specific type
+  cracked_password?: string | null;
+  hash_value: string;
+  hash_mode: number;
+  wordlist_used: string;
+  elapsed_time_seconds?: number | null;
+  message: string;
+  hashcat_output?: string | null; // Optional full output
+}
+
+/**
+ * Sends a hash cracking request to the backend Hashcat service.
+ * @param request The cracking request details (hash, mode, wordlist).
+ * @returns Promise resolving to the cracking result.
+ */
+export async function crackHashWithHashcat(request: HashcatCrackRequest): Promise<HashcatCrackResponse> {
+  const backendUrl = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000"; // Use env var
+  const apiUrl = `${backendUrl}/hashcat/crack`;
+
+  try {
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify(request),
+    });
+
+    if (!response.ok) {
+      let errorDetails = `HTTP error! status: ${response.status}`;
+      try {
+        const errorData = await response.json();
+        // Use the detail field from FastAPI's HTTPException or the message from CrackResponse
+        errorDetails += ` - ${errorData.detail || errorData.message || JSON.stringify(errorData)}`;
+      } catch (jsonError) {
+        errorDetails += ` - ${response.statusText}`;
+      }
+      console.error("Hashcat Crack API Error Details:", errorDetails);
+      // Throw the detailed error message
+      throw new Error(`Hashcat crack request failed: ${errorDetails}`);
+    }
+
+    const data: HashcatCrackResponse = await response.json();
+    return data;
+
+  } catch (error) {
+    console.error("Error calling Hashcat crack API:", error);
+    // Re-throw specific errors or a generic one
+    if (error instanceof Error && error.message.startsWith('Hashcat crack request failed')) {
+      throw error;
+    }
+    throw new Error("Network error or failed to connect to Hashcat service.");
+  }
+}
 /**
  * API Switcher: Decides which AI service to call based on environment variable.
  * NOTE: This function is currently bypassed by the usePasswordAnalysis hook,

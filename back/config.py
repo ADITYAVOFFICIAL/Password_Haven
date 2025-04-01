@@ -63,8 +63,8 @@ else:
 
 
 # --- Ollama Analyzer Configuration ---
-# Configuration for interacting with the local Ollama service.
-OLLAMA_MODEL_DEFAULT = "gemma3:4b-it-q8_0" # Example model
+# Configuration for interacting with the local Ollama service. gemma3:1b-it-fp16 for demo purposes and gemma3:4b-it-q8_0 for production
+OLLAMA_MODEL_DEFAULT = "gemma3:1b-it-fp16" # Example model
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", OLLAMA_MODEL_DEFAULT)
 
 OLLAMA_HOST_DEFAULT = "http://127.0.0.1:11434" # Default Ollama API endpoint

@@ -1,17 +1,21 @@
 
 import { useState, useEffect } from "react";
-import { analyzePassword, type PasswordAnalysisResponse, checkPasswordBreached,checkPasswordHibp,type HibpCheckResponse } from "@/api/passwordService";
+import { analyzePassword, type PasswordAnalysisResponse, checkPasswordBreached,checkPasswordHibp,type HibpCheckResponse,crackHashWithHashcat,type HashcatCrackRequest,type HashcatCrackResponse } from "@/api/passwordService";
 // import { analyzePasswordWithGemini } from "@/api/geminiService";
 import { analyzePasswordWithOllama, type PasswordAnalysisContext } from "@/api/ollamaService";
 import { DEFAULT_FEEDBACK } from "@/constants/config";
 import { calculatePasswordStatistics } from "@/utils/formatTTC";
 import { analyzePasswordAdvanced } from "@/utils/passwordAnalysis";
-
+import { calculateMD5 } from "@/utils/hashing";
 export function usePasswordAnalysis() {
   // --- NEW HIBP STATE ---
   const [hibpResult, setHibpResult] = useState<HibpCheckResponse | null>(null);
   const [isHibpLoading, setIsHibpLoading] = useState(false);
   const [hibpError, setHibpError] = useState<string | null>(null); // Optional error state
+  // --- Hashcat State ---
+  const [hashcatResult, setHashcatResult] = useState<HashcatCrackResponse | null>(null);
+  const [isHashcatLoading, setIsHashcatLoading] = useState(false);
+  const [hashcatError, setHashcatError] = useState<string | null>(null);
   // --- END NEW HIBP STATE ---
   const [password, setPassword] = useState("");
   const [analysis, setAnalysis] = useState<PasswordAnalysisResponse>({
@@ -131,12 +135,15 @@ export function usePasswordAnalysis() {
         other: 0
       });
       setHibpResult(null);
+      setHashcatResult(null);
       setIsLoading(false);
       setIsAiLoading(false);
       setIsBreachLoading(false);
       setIsHibpLoading(false);
+      setIsHashcatLoading(false);
       setError(null);
       setHibpError(null);
+      setHashcatError(null);
       return;
     }
     
@@ -290,12 +297,52 @@ export function usePasswordAnalysis() {
         setHibpError(null);
       }
     }, 500); // 500ms debounce for HIBP check (adjust as needed)
+    // --- Hashcat Cracking Simulation Timer ---
+    const hashcatTimer = setTimeout(async () => {
+      // Only run if password has some length (e.g., >= 1)
+      // You might want a longer minimum length depending on typical use case
+      if (password.length >= 1) {
+          setIsHashcatLoading(true);
+          setHashcatError(null);
+          setHashcatResult(null); // Clear previous result before new request
+
+          try {
+              // 1. Calculate the hash (MD5 for this example)
+              const hashToCrack = calculateMD5(password);
+
+              // 2. Prepare the request payload
+              //    Hardcoding mode 0 (MD5) and rockyou.txt for this example
+              const crackRequest: HashcatCrackRequest = {
+                  hash_value: hashToCrack,
+                  hash_mode: 0, // MD5
+                  wordlist_filename: "rockyou.txt" // Ensure this exists on your backend
+              };
+
+              // 3. Call the API
+              const result = await crackHashWithHashcat(crackRequest);
+              setHashcatResult(result);
+
+          } catch (err) {
+              console.error("Hashcat crack error in hook:", err);
+              setHashcatError(err instanceof Error ? err.message : "Failed Hashcat crack request");
+              setHashcatResult(null); // Clear result on error
+          } finally {
+              setIsHashcatLoading(false);
+          }
+      } else {
+          // Clear results if password becomes too short
+          setHashcatResult(null);
+          setHashcatError(null);
+          setIsHashcatLoading(false); // Ensure loading is off
+      }
+  }, 1000); // Longer debounce for Hashcat (e.g., 1000ms)
     // --- END NEW HIBP CHECK DEBOUNCE ---
     return () => {
       clearTimeout(timer);
       clearTimeout(aiTimer);
       clearTimeout(breachTimer);
       clearTimeout(hibpTimer);
+      clearTimeout(hashcatTimer);
     };
   }, [password]);
   
@@ -305,7 +352,8 @@ export function usePasswordAnalysis() {
     analysis,
     aiAnalysis,
     breachAnalysis, // Keep this for the pattern check results
-    hibpResult, // <-- Return HIBP result
+    hibpResult, 
+    hashcatResult, 
     advancedAnalysis,
     stats,
     passwordStats,
@@ -313,8 +361,10 @@ export function usePasswordAnalysis() {
     isAiLoading,
     isBreachLoading, // Pattern check loading
     isHibpLoading, // <-- Return HIBP loading state
+    isHashcatLoading,
     error, // General error
     hibpError, // <-- Return HIBP specific error
+    hashcatError,
     hasPassword: password.length > 0,
   };
 }
