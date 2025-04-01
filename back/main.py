@@ -19,11 +19,13 @@ try:
     from . import config
     from .hibp_checker.router import router as hibp_router # Import HIBP router
     from .ollama_analyzer.router import router as ollama_router # Import Ollama router
+    from .hashcat.router import router as hashcat_router
 except ImportError:
     # Fallback for running the script directly (python back/main.py) - less ideal
     import config
     from hibp_checker.router import router as hibp_router
     from ollama_analyzer.router import router as ollama_router
+    from hashcat.router import router as hashcat_router
     print("Warning: Running main.py directly. Relative imports failed, using direct imports. "
           "Consider running with 'uvicorn back.main:app' for proper package structure.")
 
@@ -95,7 +97,13 @@ app.include_router(
     prefix="/ollama",
     tags=["Ollama Analyzer"] # Group endpoints under this tag in API docs
 )
-
+# <<< Include Hashcat router >>>
+logger.info("Including Hashcat Cracker router under '/hashcat'")
+app.include_router(
+    hashcat_router,
+    prefix="/hashcat",        # Define the base path for hashcat endpoints
+    tags=["Hashcat Cracker"]  # Group endpoints under this tag in API docs
+)
 # --- Root Endpoint ---
 @app.get(
     "/",
@@ -131,6 +139,13 @@ async def read_root():
                 "root_info": "/ollama/",
                 "health_check": "/ollama/health",
                 "analyze_endpoint_POST": "/ollama/generateContent"
+            },
+            "/hashcat": {
+                "summary": "Hashcat Password Cracker",
+                "description": "Initiates dictionary attacks using a local Hashcat instance.",
+                "root_info": "/hashcat/",
+                "health_check": "/hashcat/health",
+                "crack_endpoint_POST": "/hashcat/crack"
             }
         },
         "contact": app.contact, # Include contact info from app definition
