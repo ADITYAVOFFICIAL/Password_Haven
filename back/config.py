@@ -61,6 +61,35 @@ if not BLOOM_FILTER_PATH.is_file(): # Use Path.is_file()
 else:
     logger_config.info("HIBP Config: Bloom filter file found. Library should automatically use it for faster lookups.")
 
+# --- ML Analyzer Configuration ---
+ML_ANALYZER_DIR = PROJECT_ROOT / "back" / "ml_analyzer" # Base directory for the analyzer
+ML_MODEL_DIR = ML_ANALYZER_DIR / "models" # Directory containing model files
+
+# Default filenames - adjust if your files are named differently
+ML_MODEL_FILENAME_DEFAULT = "lightgbm_password_model.joblib"
+ML_FEATURES_FILENAME_DEFAULT = "feature_names.joblib"
+
+# Get filenames from environment or use defaults
+ML_MODEL_FILENAME = os.getenv("ML_MODEL_FILENAME", ML_MODEL_FILENAME_DEFAULT)
+ML_FEATURES_FILENAME = os.getenv("ML_FEATURES_FILENAME", ML_FEATURES_FILENAME_DEFAULT)
+
+# Construct full paths
+ML_MODEL_PATH = ML_MODEL_DIR / ML_MODEL_FILENAME
+ML_FEATURES_PATH = ML_MODEL_DIR / ML_FEATURES_FILENAME
+
+logger_config.info(f"ML Analyzer Config: Expecting model file at: {ML_MODEL_PATH}")
+logger_config.info(f"ML Analyzer Config: Expecting features file at: {ML_FEATURES_PATH}")
+
+# Check if the required files exist
+if not ML_MODEL_PATH.is_file():
+    logger_config.error(f"ML Analyzer Config: Model file NOT FOUND at: {ML_MODEL_PATH}. ML Analyzer WILL FAIL to load.")
+else:
+    logger_config.debug(f"ML Analyzer Config: Found model file at: {ML_MODEL_PATH}")
+
+if not ML_FEATURES_PATH.is_file():
+     logger_config.error(f"ML Analyzer Config: Feature names file NOT FOUND at: {ML_FEATURES_PATH}. ML Analyzer WILL FAIL to load.")
+else:
+     logger_config.debug(f"ML Analyzer Config: Found feature names file at: {ML_FEATURES_PATH}")
 
 # --- Ollama Analyzer Configuration ---
 # Configuration for interacting with the local Ollama service. gemma3:1b-it-fp16 for demo purposes and gemma3:4b-it-q8_0 for production

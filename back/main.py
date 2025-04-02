@@ -6,40 +6,59 @@ Initializes the FastAPI app, configures logging, sets up CORS middleware,
 includes API routers for different services (HIBP, Ollama), and defines
 a root endpoint.
 """
-
 import logging
 import uvicorn
 from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
+import sys
+from pathlib import Path
+# --- Path Setup for Imports ---
+# Ensure the project root and 'back' directory are in the Python path
+current_dir = Path(__file__).resolve().parent
+project_root = current_dir.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+if str(current_dir) not in sys.path:
+     sys.path.insert(0, str(current_dir))
 
-# Import configuration and routers using relative imports within the 'back' package
-# This structure assumes 'main.py' is run as part of the 'back' package
-# (e.g., using `uvicorn back.main:app`)
+# --- Import Configuration and Routers ---
 try:
     from . import config
     from .hibp_checker.router import router as hibp_router # Import HIBP router
     from .ollama_analyzer.router import router as ollama_router # Import Ollama router
     from .hashcat.router import router as hashcat_router
+    from .ml_analyzer.router import router as ml_router
+    from .ml_analyzer.router import load_ml_model
 except ImportError:
     # Fallback for running the script directly (python back/main.py) - less ideal
-    import config
-    from hibp_checker.router import router as hibp_router
-    from ollama_analyzer.router import router as ollama_router
-    from hashcat.router import router as hashcat_router
-    print("Warning: Running main.py directly. Relative imports failed, using direct imports. "
-          "Consider running with 'uvicorn back.main:app' for proper package structure.")
+    try:
+        import config
+        from hibp_checker.router import router as hibp_router
+        from ollama_analyzer.router import router as ollama_router
+        from hashcat.router import router as hashcat_router
+        from ml_analyzer.router import router as ml_router
+        from ml_analyzer.router import load_ml_model
+    except ImportError as e2:
+         print(f"Fallback import failed: {e2}. Exiting.")
+         sys.exit(1) # Exit if core components can't be imported
 
 
 # --- Logging Setup ---
-# Configure basic logging using the level from config
-# Added %(name)s to identify the logger source easily
+# Configure logging using the level and format from config
+# Ensure this runs after config is loaded
 logging.basicConfig(
     level=config.LOG_LEVEL,
-    format='%(asctime)s [%(name)-25s] [%(levelname)-8s] %(message)s', # Adjusted name width
-    datefmt='%Y-%m-%d %H:%M:%S'
+    format='%(asctime)s [%(name)-25s] [%(levelname)-8s] %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S',
+    # Force=True might be needed if uvicorn tries to configure logging first
+    force=True
 )
-# Create a logger instance specifically for this main application file
+# Get a logger instance for this main application file
 logger = logging.getLogger("main_app")
+logger.info(f"Logging configured with level: {config.LOG_LEVEL}")
+
+
 
 # --- FastAPI Application Initialization ---
 # Initialize the FastAPI application with metadata for documentation
@@ -81,6 +100,14 @@ app.add_middleware(
     allow_headers=["*"], # Allow specific headers needed by the frontend, e.g., ["Content-Type", "Authorization"]
 )
 
+@app.on_event("startup")
+def startup_event():
+    """Execute tasks when the application starts."""
+    logger.info("Starting application...")
+    
+    # Load ML model at startup
+    logger.info("Loading ML model...")
+    load_ml_model()
 # --- Include API Routers ---
 # Mount the HIBP checker router under the /hibp path prefix
 logger.info("Including HIBP Checker router under '/hibp'")
@@ -104,6 +131,8 @@ app.include_router(
     prefix="/hashcat",        # Define the base path for hashcat endpoints
     tags=["Hashcat Cracker"]  # Group endpoints under this tag in API docs
 )
+logger.info("Including ML Analyzer router under '/ml'")
+app.include_router(ml_router, prefix="/ml", tags=["ML Analyzer"])
 # --- Root Endpoint ---
 @app.get(
     "/",
@@ -146,6 +175,12 @@ async def read_root():
                 "root_info": "/hashcat/",
                 "health_check": "/hashcat/health",
                 "crack_endpoint_POST": "/hashcat/crack"
+            },
+            "/ml": {
+                "summary": "ML Password Strength Analyzer",
+                "description": "Analyzes password strength using a pre-trained LightGBM model.",
+                "health_check": "/ml/health",
+                "analyze_endpoint_POST": "/ml/analyze"
             }
         },
         "contact": app.contact, # Include contact info from app definition
