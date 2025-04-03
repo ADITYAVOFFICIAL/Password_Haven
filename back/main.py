@@ -9,6 +9,7 @@ a root endpoint.
 import logging
 import uvicorn
 from fastapi import FastAPI, status
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import sys
@@ -71,7 +72,7 @@ app = FastAPI(
         "- **Ollama Password Analysis:** Leverages a local Ollama LLM instance to analyze "
         "password strength, provide reasoning, and suggest improvements."
     ),
-    version="1.0.0", # Incremented version for documentation/feature enhancements
+    version="1.1.0", # Incremented version for documentation/feature enhancements
     contact={
         "name": "API Support",
         "url": "https://adityaver.vercel.app/", # Replace with actual support URL
@@ -108,6 +109,11 @@ def startup_event():
     # Load ML model at startup
     logger.info("Loading ML model...")
     load_ml_model()
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    # Adjust the path to your favicon.ico file relative to main.py's location
+    icon_path = Path(__file__).parent / "favicon.ico"
+    return FileResponse(icon_path)
 # --- Include API Routers ---
 # Mount the HIBP checker router under the /hibp path prefix
 logger.info("Including HIBP Checker router under '/hibp'")

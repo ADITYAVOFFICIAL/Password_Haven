@@ -23,274 +23,402 @@ import {
   Computer,
   Fingerprint,
   ListChecks,
+  ShieldAlert,
+  BookOpen, 
+  Wand2,  
+  Gauge,    
+  Users,    
+  Clock,    
+  Zap,     
+  Lightbulb,
+  TrendingUp, 
+  Info
 } from "lucide-react";
 import { cn } from "@/lib/utils"; // Adjust path if needed
 import { useIsMobile } from "@/hooks/useIsMobile"; // Adjust path if needed
 
 // --- Data Structure for Security Tips ---
 
-const ENHANCED_SECURITY_TIPS = {
+const ENHANCED_SECURITY_TIPS: SecurityTipsData = {
   passwords: {
-    title: "Password Security",
-    icon: <Lock size={20} className="text-inherit" />, // Use text-inherit for color control
+    title: "Password Creation & Management", // Renamed for clarity
+    icon: <Lock size={20} className="text-inherit" />,
     tips: [
       {
-        title: "Use a Password Manager",
+        title: "Utilize a Reputable Password Manager", // Enhanced title
         description:
-          "Password managers generate, store, and autofill strong, unique passwords for all your accounts. This prevents password reuse and makes it easier to use complex passwords. Most password managers also offer secure sharing, breach monitoring, and cross-device synchronization.",
+          "Password managers are essential tools. They securely generate, store complex passwords, and autofill them, eliminating the need to remember dozens of unique credentials and preventing the dangerous practice of password reuse. They act as an encrypted vault for your digital keys.",
         icon: "KeyRound",
         examples: [
-          "1Password, Bitwarden, LastPass, and KeePass are popular options",
-          "Many browsers now have built-in password managers, though dedicated solutions often provide better security",
+          "Leading options: Bitwarden (Open Source), 1Password (User-Friendly), KeePassXC (Offline/Self-Hosted), Proton Pass (Privacy-Focused).",
+          "Browser managers (Chrome, Firefox, Safari) are convenient but dedicated managers offer more features like secure notes, identity storage, and cross-platform syncing.",
+          "Ensure your Master Password for the manager is extremely strong and unique.",
         ],
+        importantNote: "Your password manager's master password is the key to everything; make it exceptionally strong (long passphrase recommended) and never reuse it."
       },
       {
-        title: "Create Strong, Unique Passwords",
+        title: "Mandate Strong, Unique Credentials", // Enhanced title
         description:
-          "Use long passwords (12+ characters) with a mix of uppercase and lowercase letters, numbers, and symbols. Never reuse passwords across different sites or services, as a breach on one site could compromise all your accounts.",
+          "Every account needs its own unique password. Aim for significant length (15+ characters ideally) and complexity (mix of upper/lowercase letters, numbers, symbols). Avoid dictionary words, common phrases, or predictable substitutions (like 'P@ssw0rd'). The primary defense against brute-force and dictionary attacks is length and randomness.",
         icon: "Lock",
         examples: [
-          "Random passwords like 'X3f!pT8&vZ@q' are ideal for maximum security",
-          "Passphrases like 'correct-horse-battery-staple-42!' are easier to remember",
+          "Generated: '3k$Gv^8!p@zL#sQ7*bN', 'j9#rW&pZ@1sF!dK5'",
+          "Passphrase: 'Vivid-Arctic-Jigsaw-Plummet-74@'",
+          "Avoid: 'Password123', 'Admin!', 'CompanyName2024', 'qwerty!@#'.",
         ],
+        importantNote: "Password reuse is one of the biggest risks. A breach on one site can compromise all others where the same password is used (credential stuffing)."
       },
       {
-        title: "Use Passphrases Instead of Passwords",
+        title: "Embrace Long Passphrases", // Enhanced title
         description:
-          "Consider using a series of random words with numbers and symbols which are easier to remember but harder to crack than shorter complex passwords. The length adds significant entropy while maintaining memorability.",
+          "Instead of complex strings, consider using passphrases composed of 4-6 random, unrelated words. Length is key here. Adding numbers or symbols increases strength further. This method leverages entropy through length, often making them easier to remember (if needed) but very hard to crack.",
         icon: "FileText",
         examples: [
-          "Example: 'grape-stapler-rhino-7!' (much stronger than 'P@ssw0rd1')",
-          "Four random words plus a number and symbol can have over 100 bits of entropy",
+          "Method: Use diceware (rolling dice to pick words from a list) for true randomness.",
+          "Example: 'staple-correct-battery-horse-!99' (classic XKCD reference, but use *random* words).",
+          "Generated Example: 'Oceanic+Waffle?Lamp=Gravity6'",
+          "Tools like EFF's Diceware list or online generators can help.",
         ],
       },
       {
-        title: "Regularly Audit Your Passwords",
+        title: "Conduct Regular Password Audits", // Enhanced title
         description:
-          "Periodically review your password security, especially for critical accounts. Look for weak, reused, or compromised passwords. Update passwords for important services at least annually, even if there's no known breach.",
+          "Periodically review the passwords stored in your manager. Identify and update weak, reused, very old, or potentially compromised passwords (flagged by breach monitoring). Prioritize critical accounts like email, banking, and the password manager itself.",
         icon: "ListChecks",
         examples: [
-          "Use your password manager's security audit feature",
-          "Check breach monitoring services like 'Have I Been Pwned'",
+          "Use built-in audit tools in 1Password, Bitwarden, Dashlane, etc.",
+          "Cross-reference flagged passwords with Have I Been Pwned (HIBP).",
+          "Focus on accounts holding sensitive personal or financial data.",
+          "Aim for an audit at least once or twice a year.",
         ],
       },
       {
-        title: "Use Different Password Patterns for Different Security Levels",
+        title: "Avoid Predictable Patterns & Personal Info", // New Tip
         description:
-          "Consider categorizing your accounts by importance and using different password strategies. Critical accounts (email, banking, password manager) should have the strongest possible passwords, while less important accounts can use simpler (but still strong) passwords.",
+          "Humans tend towards patterns. Avoid sequences (abc, 123), keyboard walks (qwerty, asdfgh), common substitutions ('@' for 'a', '3' for 'e'), or appending years/numbers predictably. Never use personal information like birthdays, names (yours, family, pets), addresses, or common words related to your interests.",
+        icon: "MessageSquareWarning", // New icon
+        examples: [
+          "Bad: 'MyDogFido19!', 'LiverpoolFan_2024', 'Summer23!', 'P@$$wOrdPlu$1'.",
+          "Attackers specifically target these common human-generated patterns.",
+          "True randomness from a generator is always superior.",
+        ],
+      },
+      {
+        title: "Tier Your Password Strategy", // Renamed from "Use Different Patterns"
+        description:
+          "Categorize accounts based on risk. Use your strongest, most unique passwords/passphrases for high-value targets (email, finance, password manager). Slightly less complex (but still strong and unique) passwords can be used for medium-risk accounts. Avoid weak passwords even for low-risk sites.",
         icon: "Layers",
         examples: [
-          "Critical: 20+ random characters with maximum complexity",
-          "Important: 16+ character passphrases with symbols",
-          "Standard: 12+ character unique passwords",
+          "Tier 1 (Critical): 25+ character generated password or 6+ word passphrase.",
+          "Tier 2 (Important): 16+ character generated password or 4-5 word passphrase.",
+          "Tier 3 (Standard): 12-15 character generated password.",
+          "Never reuse passwords between tiers.",
         ],
       },
     ],
   },
   authentication: {
-    title: "Authentication Methods",
+    title: "Multi-Factor Authentication (MFA)", // Renamed
     icon: <Fingerprint size={20} className="text-inherit" />,
     tips: [
       {
-        title: "Enable Two-Factor Authentication (2FA)",
+        title: "Enable MFA Everywhere Possible", // Enhanced title
         description:
-          "Add an extra layer of security by enabling 2FA on all accounts that support it. Even if someone gets your password, they won't be able to access your account without the second factor. Authenticator apps are more secure than SMS-based 2FA.",
+          "Multi-Factor Authentication (MFA/2FA) adds a critical security layer. Even if your password is stolen, attackers need the second factor (something you have or something you are) to gain access. Prioritize MFA on email, financial, social media, and cloud storage accounts.",
         icon: "ShieldCheck",
         examples: [
-          "Authenticator apps: Google Authenticator, Microsoft Authenticator, Authy",
-          "Hardware security keys like YubiKey offer the strongest protection",
-          "Biometric factors (fingerprint, face recognition) when available",
+          "Methods (Secure to Less Secure): Hardware Keys (YubiKey, Titan), Authenticator Apps (Authy, Google/Microsoft Authenticator - TOTP), Push Notifications, SMS/Email codes (vulnerable to SIM swapping/phishing).",
+          "Always prefer app-based TOTP or hardware keys over SMS.",
+          "Store backup codes securely (in password manager or offline).",
+        ],
+        importantNote: "SMS-based 2FA is better than nothing, but significantly less secure than app-based or hardware methods."
+      },
+      {
+        title: "Understand and Use Passkeys", // New Tip
+        description:
+          "Passkeys are a newer, more secure alternative to passwords based on cryptographic key pairs (FIDO/WebAuthn standard). They replace passwords entirely for supported sites, offering phishing resistance and simpler logins using your device's biometrics or PIN. Adoption is growing.",
+        icon: "UserCheck", // New icon
+        examples: [
+          "Managed by your device (phone, computer) or a hardware security key.",
+          "Supported by Google, Apple, Microsoft, and growing number of websites.",
+          "Often sync across devices via cloud accounts (e.g., iCloud Keychain, Google Password Manager).",
+          "Can coexist with traditional passwords during transition.",
         ],
       },
       {
-        title: "Use Biometric Authentication When Available",
+        title: "Leverage Biometrics Securely", // Renamed
         description:
-          "Modern devices offer fingerprint, face, or iris recognition as authentication methods. These are generally more convenient and secure than passwords for device access, though they should be combined with a strong password or PIN as backup.",
+          "Biometrics (fingerprint, face recognition) offer convenient device and app unlocking. While generally secure for this purpose, understand they primarily protect device access. They should always be backed by a strong PIN or password. Be aware of potential (though often difficult) bypass methods.",
         icon: "Fingerprint",
         examples: [
-          "Use Touch ID/Face ID for phones and laptops",
-          "Enable Windows Hello or macOS Touch ID",
-          "Remember that biometrics still need a password backup",
+          "Use for unlocking phones, laptops, password managers.",
+          "Ensure device has a strong fallback PIN/password.",
+          "Consider potential risks like unlocking under duress or with high-quality fakes (rare).",
         ],
       },
       {
-        title: "Implement Risk-Based Authentication",
+        title: "Be Aware of Risk-Based/Adaptive Authentication", // Renamed
         description:
-          "When setting up security for business systems, consider risk-based authentication that adapts to the user's behavior, location, and device. This provides better security while reducing friction for legitimate access.",
+          "Many services use adaptive authentication, analyzing login context (location, device, time, behavior) to assess risk. Unusual activity might trigger requests for additional verification (like MFA or security questions), even if the password is correct. This is largely invisible to users but enhances security.",
         icon: "BrainCircuit",
         examples: [
-          "Requiring additional verification for unusual locations or new devices",
-          "Using single sign-on (SSO) solutions for enterprise systems",
-          "Implementing adaptive authentication based on risk profiles",
+          "Login from a new country triggers an email verification.",
+          "Multiple failed login attempts temporarily lock the account.",
+          "Enterprises use this heavily with Single Sign-On (SSO) systems.",
         ],
       },
     ],
   },
   monitoring: {
-    title: "Security Monitoring",
+    title: "Account & Identity Monitoring", // Renamed
     icon: <Eye size={20} className="text-inherit" />,
     tips: [
       {
-        title: "Regularly Check for Data Breaches",
+        title: "Actively Monitor for Data Breaches", // Enhanced title
         description:
-          "Regularly check services like 'Have I Been Pwned' to see if your email has been involved in a data breach, and change passwords for affected accounts immediately. Many password managers now include breach monitoring features as well.",
-        icon: "Search",
+          "Use services like 'Have I Been Pwned' (HIBP) to check if your email addresses or specific passwords (via HIBP's password checker) have appeared in known breaches. Many password managers integrate this. If an account is breached, change the password immediately and enable MFA if not already active.",
+        icon: "DatabaseZap", // Changed icon
         examples: [
-          "Set up breach alerts for your email addresses",
-          "Check quarterly for any new breaches affecting your accounts",
-          "Check if family members' accounts have been compromised too",
+          "Check HIBP regularly: haveibeenpwned.com",
+          "Use Firefox Monitor or similar services.",
+          "Enable breach alerts in your password manager (1Password Watchtower, Bitwarden Reports).",
+          "Don't just check your primary email; check all associated emails.",
         ],
+        importantNote: "Finding your email in a breach means you MUST change the password for that specific service and any other service where you reused that password."
       },
       {
-        title: "Monitor Account Activity",
+        title: "Review Account Login & Security Activity", // Enhanced title
         description:
-          "Regularly review login activity, recent sessions, and connected applications for your important accounts. Many services provide activity logs that can help you spot unauthorized access or suspicious behavior.",
+          "Periodically check the security sections of your critical accounts (email, social media, cloud services). Look for unrecognized login locations, devices, connected apps, or changes to security settings (like recovery email/phone). Report any suspicious activity immediately.",
         icon: "Eye",
         examples: [
-          "Review Google's security dashboard and recent activity",
-          "Check Facebook's 'Where You're Logged In' section",
-          "Monitor bank and credit card transactions regularly",
+          "Google: Security Checkup & Recent Security Activity.",
+          "Microsoft: Recent Activity Page.",
+          "Facebook/Instagram: Security and Login -> Where You're Logged In.",
+          "Review apps granted access to your accounts (OAuth).",
         ],
       },
       {
-        title: "Use Identity Theft Protection Services",
+        title: "Consider Identity Theft Monitoring (with caution)", // Enhanced title
         description:
-          "Consider using identity theft protection services that monitor credit reports, dark web mentions of your personal information, and unauthorized use of your identity. These services often provide insurance and recovery assistance if your identity is stolen.",
+          "Paid identity theft services monitor credit reports, dark web forums, and public records for your personal information. They can provide alerts and assistance. Evaluate the cost versus benefit; basic credit monitoring is often available for free or through financial institutions.",
         icon: "Shield",
         examples: [
-          "Services like LifeLock, Identity Guard, or IdentityForce",
-          "Credit monitoring through major credit bureaus",
-          "Financial institutions often offer some form of identity monitoring",
+          "Services: Aura, Identity Guard, LifeLock (evaluate features and cost).",
+          "Free options: Credit Karma, bank-provided monitoring, annual free credit reports.",
+          "A credit freeze can be a highly effective (and often free) preventative measure.",
         ],
       },
     ],
   },
   devices: {
-    title: "Device Security",
+    title: "Device & Network Security", // Renamed
     icon: <Computer size={20} className="text-inherit" />,
     tips: [
       {
-        title: "Keep Your Devices Secure",
+        title: "Maintain Device Hygiene: Updates & Protection", // Enhanced title
         description:
-          "Keep your operating system, browsers, and apps updated. Use antivirus software and firewalls to protect against malware that could steal your passwords. Enable disk encryption on all devices to protect data if they're lost or stolen.",
+          "Keep operating systems (Windows, macOS, iOS, Android), browsers, and all applications updated promptly. Updates patch security vulnerabilities exploited by malware. Use reputable antivirus/anti-malware software and enable firewalls. Secure devices with strong screen locks and short auto-lock timers.",
         icon: "Smartphone",
         examples: [
-          "Enable automatic updates for all software",
-          "Use disk encryption: BitLocker (Windows), FileVault (Mac), or built-in encryption (mobile)",
-          "Never leave devices unlocked when unattended",
+          "Enable automatic updates whenever possible.",
+          "Use built-in security (Windows Defender, XProtect) or trusted third-party AV.",
+          "Enable full-disk encryption (BitLocker, FileVault).",
+          "Set screen lock timeout to 1-5 minutes.",
+          "Review and limit app permissions regularly on mobile.",
         ],
       },
       {
-        title: "Secure Your Home Network",
+        title: "Secure Your Home Network Router", // Enhanced title
         description:
-          "Protect your home WiFi with a strong password and WPA3 encryption if available. Change default router credentials, enable automatic updates, and consider setting up a guest network for visitors and IoT devices.",
+          "Your router is the gateway to your network. Change the default admin username and password immediately. Use strong WPA3 (or WPA2-AES) encryption with a unique, long password for your WiFi. Keep router firmware updated. Disable WPS (WiFi Protected Setup) as it can be vulnerable. Consider segmenting networks (guest, IoT).",
         icon: "Computer",
         examples: [
-          "Use a unique, strong password for your WiFi network",
-          "Update router firmware regularly",
-          "Consider using a VPN for additional privacy",
+          "Router Admin: Use a password manager to generate a strong password.",
+          "WiFi Password: Treat it like any other critical password - long and unique.",
+          "Check manufacturer's website for firmware updates.",
+          "Create a separate Guest network for visitors.",
         ],
       },
       {
-        title: "Be Cautious with Public WiFi",
+        title: "Exercise Extreme Caution on Public WiFi", // Enhanced title
         description:
-          "Avoid accessing sensitive accounts or entering passwords when connected to public WiFi networks. If you must use public WiFi, connect through a VPN to encrypt your traffic and protect your data from snoopers.",
-        icon: "AlertTriangle",
+          "Public WiFi networks (cafes, airports, hotels) are inherently insecure. Avoid logging into sensitive accounts (banking, email) or transmitting confidential data unless using a trusted VPN. Attackers can intercept traffic (Man-in-the-Middle attacks). Assume the network is hostile.",
+        icon: "WifiOff", // Changed icon
         examples: [
-          "Use a reputable VPN service when on public networks",
-          "Avoid banking or shopping on public WiFi without a VPN",
-          "Disable auto-connect to unknown WiFi networks",
+          "Use a reputable paid VPN service (e.g., ProtonVPN, Mullvad, IVPN).",
+          "Ensure websites use HTTPS (lock icon in browser), but VPN is still recommended.",
+          "Turn off auto-connect to open WiFi networks on your devices.",
+          "Use cellular data instead of public WiFi for sensitive tasks if possible.",
+        ],
+      },
+      {
+        title: "Enable Remote Wipe Capabilities", // New Tip
+        description:
+          "Configure remote lock and wipe features on your smartphones, tablets, and laptops (Find My iPhone/Mac, Google Find My Device, Windows Find My Device). This allows you to locate, lock, or erase your device if it's lost or stolen, protecting the data stored on it.",
+        icon: "Smartphone", // Reusing icon, context makes it clear
+        examples: [
+          "Ensure the feature is enabled in device settings.",
+          "Requires location services and an internet connection on the lost device.",
+          "Test the location feature periodically.",
         ],
       },
     ],
   },
   awareness: {
-    title: "Security Awareness",
+    title: "Threat Awareness & Safe Habits", // Renamed
     icon: <BrainCircuit size={20} className="text-inherit" />,
     tips: [
       {
-        title: "Be Wary of Phishing Attempts",
+        title: "Identify and Avoid Phishing & Social Engineering", // Enhanced title
         description:
-          "Be suspicious of unexpected emails, messages, or calls asking for your password or personal information. Legitimate companies won't ask for your password. Check email sender addresses carefully and hover over links before clicking. When in doubt, go directly to the website by typing the URL.",
+          "Be skeptical of unsolicited emails, texts (smishing), calls (vishing), or social media messages asking for credentials, personal info, or urging immediate action. Verify sender identities. Hover over links to check destinations. Look for poor grammar, generic greetings, or unusual requests. When in doubt, contact the organization through official channels.",
         icon: "AlertTriangle",
         examples: [
-          "Look for spelling errors or unusual urgency in messages",
-          "Verify requests through official channels or by contacting the company directly",
-          "Never provide passwords or sensitive information in response to emails",
+          "Fake login pages, urgent security alerts, unexpected invoices, prize notifications.",
+          "Check email headers for mismatched sender addresses.",
+          "Never click links or open attachments from unknown/suspicious sources.",
+          "Legitimate services will rarely ask for your password via email/message.",
         ],
+        importantNote: "Social engineering preys on psychology (urgency, fear, authority, helpfulness) to trick you into compromising security."
       },
       {
-        title: "Use Unique Email Addresses",
+        title: "Use Email Aliases & Dedicated Addresses", // Enhanced title
         description:
-          "Consider using different email addresses or aliases for different types of accounts to limit damage if one account is compromised. This also helps identify which service leaked your email if you start receiving spam.",
+          "Minimize your exposure by using unique email addresses or aliases for different services, especially for less trusted sites. This limits the impact if one service is breached and helps trace sources of spam. Consider a dedicated email for financial/critical accounts.",
         icon: "AtSign",
         examples: [
-          "Use email aliases through services like Gmail (+ symbol) or outlook.com",
-          "Consider a separate email for financial accounts",
-          "Use disposable email addresses for one-time registrations",
+          "Gmail/Outlook '+addressing': yourname+service@gmail.com.",
+          "Dedicated alias services: SimpleLogin, AnonAddy.",
+          "Use disposable emails for one-time signups.",
         ],
       },
       {
-        title: "Be Careful with Security Questions",
+        title: "Treat Security Questions as Passwords", // Enhanced title
         description:
-          "Treat security questions like secondary passwords. Consider using fictional answers that only you would know, as factual answers might be discoverable online. Store these answers in your password manager.",
+          "Answers to security questions are often easily discoverable through public records or social media. Do NOT use factual answers. Instead, generate random, unique answers and store them securely in your password manager, just like passwords.",
         icon: "HelpCircle",
         examples: [
-          "Use answers unrelated to the question but memorable to you",
-          "Avoid information that could be found on social media",
-          "Store security question answers in your password manager",
+          "Question: 'Mother's maiden name?' Answer: 'BlueElephantRunningFast7!'",
+          "Question: 'First pet's name?' Answer: 'Correct-Horse-Battery-Staple'",
+          "Store both the question and the fake answer in your password manager.",
         ],
+        importantNote: "Factual answers significantly weaken account recovery security."
       },
       {
-        title: "Practice Safe Social Media",
+        title: "Manage Your Digital Footprint & Social Media Privacy", // Enhanced title
         description:
-          "Be mindful of the personal information you share online that could be used to guess passwords or answer security questions. Configure privacy settings carefully and periodically review who can see your information.",
-        icon: "Link",
+          "Be mindful of the information shared publicly online. Limit personal details on social media profiles (birthdays, locations, family names). Regularly review privacy settings on all platforms to control who sees your posts and information. Information shared online can be used for social engineering or guessing passwords/security questions.",
+        icon: "LinkIcon", // Renamed import to avoid conflict
         examples: [
-          "Avoid sharing birthdays, addresses, phone numbers publicly",
-          "Don't post about upcoming travel until after you return",
-          "Regularly review tagged photos and posts",
+          "Set social media profiles to private or friends-only.",
+          "Avoid oversharing location details or travel plans in real-time.",
+          "Review app permissions connected to your social media accounts.",
+          "Search for yourself online periodically to see what's public.",
+        ],
+      },
+       {
+        title: "Recognize Malware Risks", // New Tip
+        description:
+          "Be aware of different malware types that target credentials. Keyloggers record keystrokes, spyware monitors activity, and phishing malware directs you to fake sites. Avoid downloading software from untrusted sources, be cautious with email attachments, and keep security software active.",
+        icon: "BookOpen", // New icon
+        examples: [
+          "Only download from official app stores or reputable vendor websites.",
+          "Scan email attachments before opening, especially unexpected ones.",
+          "Beware of fake software update prompts.",
         ],
       },
     ],
   },
   recovery: {
-    title: "Backup & Recovery",
+    title: "Account Recovery & Backup", // Renamed
     icon: <RefreshCw size={20} className="text-inherit" />,
     tips: [
       {
-        title: "Prepare for Account Recovery",
+        title: "Secure and Maintain Recovery Methods", // Enhanced title
         description:
-          "Set up recovery methods for your important accounts and keep them updated. This includes recovery email addresses, phone numbers, and backup codes. Store backup codes securely in your password manager or printed in a safe location.",
+          "Ensure your recovery email addresses and phone numbers are up-to-date and themselves secured with strong passwords and MFA. Download and securely store any provided backup/recovery codes (e.g., 2FA backup codes) offline or in your password manager's secure notes.",
         icon: "RefreshCw",
         examples: [
-          "Download and securely store backup/recovery codes for crucial accounts",
-          "Keep recovery email addresses and phone numbers current",
-          "Consider setting up trusted contacts for account recovery",
+          "Store backup codes in encrypted notes in your password manager.",
+          "Consider printing codes and storing them in a physically secure location (safe).",
+          "Regularly verify that recovery methods are current.",
+          "Ensure your recovery email account has MFA enabled.",
         ],
       },
       {
-        title: "Regularly Update Your Passwords",
+        title: "Change Passwords Strategically", // Rewritten based on modern advice
         description:
-          "Change your passwords regularly, especially for critical accounts like email and banking. Always change passwords immediately after a service announces a data breach, or if you suspect your account has been compromised.",
-        icon: "RefreshCw",
+          "Current best practice advises against forced, frequent password rotation unless required by policy or a compromise is suspected. Focus on creating strong, unique passwords initially. Change passwords immediately ONLY if: 1) The service suffers a breach. 2) You suspect your account or password was compromised. 3) You accidentally shared or exposed the password.",
+        icon: "RefreshCw", // Keeping icon, but meaning shifts
         examples: [
-          "Change passwords immediately if you suspect a breach",
-          "Rotate passwords for critical accounts annually",
-          "Use your password manager's password changer feature if available",
+          "Prioritize strength and uniqueness over frequent changes.",
+          "React immediately to breach notifications or suspicious activity.",
+          "Avoid incremental changes (e.g., 'PasswordJan' to 'PasswordFeb').",
         ],
+        importantNote: "Unnecessary frequent changes often lead to weaker, predictable passwords, reducing overall security."
       },
       {
-        title: "Protect Your Financial Accounts",
+        title: "Enhance Financial Account Security", // Enhanced title
         description:
-          "Add extra security to financial accounts by enabling alerts for transactions, using dedicated security tools offered by your bank, and considering a credit freeze to prevent identity theft.",
+          "Financial accounts require extra vigilance. Enable all available security features offered by your bank/institution, such as transaction alerts (SMS/email), spending limits, and specific login security measures. Monitor statements regularly for unauthorized activity.",
         icon: "Wallet",
         examples: [
-          "Enable transaction alerts for unusual activity",
-          "Consider a credit freeze if you're not applying for new credit",
-          "Use virtual card numbers for online shopping when available",
+          "Set up alerts for large transactions, international usage, or login attempts.",
+          "Use virtual credit card numbers for online shopping where possible.",
+          "Report lost/stolen cards immediately.",
+          "Be wary of unsolicited calls/emails claiming to be your bank.",
         ],
       },
+    ],
+  },
+  // --- NEW CATEGORY ---
+  incident_response: {
+    title: "Incident Response",
+    icon: <ShieldAlert size={20} className="text-inherit" />, // New Icon
+    tips: [
+        {
+            title: "Act Quickly After a Suspected Breach",
+            description: "If you suspect an account has been compromised (e.g., receive a breach alert, notice suspicious activity), act immediately. Prioritize changing the password to a new, strong, unique one. Enable MFA if not already active. Review recent account activity and settings for unauthorized changes.",
+            icon: "AlertTriangle", // Reusing icon
+            examples: [
+                "Change password on the affected service AND any other site using the same/similar password.",
+                "Check recovery email/phone, connected apps, email forwarding rules.",
+                "Log out all other active sessions if possible.",
+            ],
+            importantNote: "Speed is critical to limit potential damage after a compromise."
+        },
+        {
+            title: "Report Compromises Appropriately",
+            description: "Notify the relevant service provider about the suspected compromise if necessary. For financial accounts, contact your bank or credit card company's fraud department immediately. If identity theft is suspected, consider reporting it to relevant government agencies (e.g., FTC in the US).",
+            icon: "MessageSquareWarning", // Reusing icon
+            examples: [
+                "Use official support channels, not links from suspicious emails.",
+                "Have account details ready when contacting financial institutions.",
+                "Document the incident (dates, times, actions taken).",
+            ],
+        },
+        {
+            title: "Consider a Preventative Credit Freeze",
+            description: "If significant personal information (like SSN, DOB) might have been exposed in a breach, consider placing a security freeze on your credit reports with the major bureaus (Equifax, Experian, TransUnion in the US). This prevents new credit accounts from being opened in your name without your explicit permission.",
+            icon: "Shield", // Reusing icon
+            examples: [
+                "Freezes are generally free to place and lift.",
+                "Requires contacting each credit bureau individually.",
+                "Remember to temporarily lift the freeze if applying for new credit.",
+            ],
+        },
+        {
+            title: "Review and Learn from Incidents",
+            description: "After containing an incident, try to understand how it might have happened (e.g., phishing, malware, reused password). Use this knowledge to strengthen your security practices going forward. Educate family members if their accounts might also be at risk.",
+            icon: "BookOpen", // Reusing icon
+            examples: [
+                "Did I click a phishing link?",
+                "Was the password reused?",
+                "Is my device infected?",
+                "Update security settings based on lessons learned.",
+            ],
+        },
     ],
   },
 };
@@ -513,36 +641,144 @@ const SecurityTips = () => {
           </div>
         )}
 
-        {/* Research/Additional Info Section */}
-        <div className="mt-16 bg-slate-50/80 rounded-xl p-6 md:p-8 border border-slate-200/50 backdrop-blur-sm">
-          <h2 className="text-xl font-semibold mb-4 text-slate-800"> {/* Adjusted font weight/color */}
-            Research-Based Password Security Insights
+           {/* Research/Additional Info Section - Enhanced Readability */}
+        <div className="mt-16 bg-gradient-to-br from-slate-50/70 via-white/50 to-blue-50/40 rounded-xl p-6 md:p-8 border border-slate-200/50 backdrop-blur-sm shadow-sm"> {/* Subtle gradient background */}
+          <h2 className="text-xl md:text-2xl font-semibold mb-6 text-slate-800 text-center md:text-left"> {/* Centered on mobile */}
+            Understanding the Password Security Landscape
           </h2>
-          <div className="space-y-4 text-muted-foreground text-sm md:text-base"> {/* Adjusted font size */}
-            <p>
-              Recent studies indicate that a significant portion of passwords used in the real world remain vulnerable. Research suggests that{" "}
-              <strong>~59% of common passwords can be cracked in less than an hour</strong>{" "}
-              using readily available hardware and intelligent guessing techniques, emphasizing the need for robust password practices.
-            </p>
-            <p>The typical distribution of cracking times highlights the risks:</p>
-            <ul className="list-disc pl-5 space-y-1">
-              <li>
-                Approximately <strong>45%</strong> are compromised almost instantly (under a minute).
-              </li>
-              <li>
-                An additional <strong>14%</strong> fall within the first hour of attack.
-              </li>
-              <li>
-                A concerningly small fraction, around <strong>23%</strong>, demonstrate resilience lasting over a year against standard cracking attempts.
-              </li>
-            </ul>
-            <blockquote className="text-slate-700 border-l-4 border-primary/40 pl-4 py-2 bg-primary/5 rounded-r-md italic my-5"> {/* Added margin */}
-              "Human perceptions of password complexity often misalign with computational reality. Patterns and common substitutions (like '@' for 'a') are easily bypassed by modern password-cracking algorithms, offering minimal real-world security gains."
-              <span className="block text-xs text-slate-500 mt-2">- Security Research Findings</span> {/* Optional attribution */}
-            </blockquote>
-            <p>
-              Cybersecurity is a dynamic landscape. Staying informed about emerging threats and evolving best practices is crucial. Always prioritize the security layers protecting your most sensitive accounts and data.
-            </p>
+          <div className="space-y-8"> {/* Increased spacing between major sections */}
+
+            {/* Section: The Problem */}
+            <section>
+              <p className="text-muted-foreground text-sm md:text-base leading-relaxed">
+                Despite increased awareness, a vast number of passwords actively used online remain dangerously weak due to common pitfalls like <strong className="text-slate-700">reuse across multiple sites, predictability, and reliance on easily guessable personal information</strong>. Research consistently highlights this vulnerability.
+              </p>
+            </section>
+
+            {/* Section: How Passwords Are Cracked */}
+            <section>
+              <h3 className="text-lg font-semibold text-slate-700 mb-4 flex items-center gap-2">
+                 <Info size={18} className="text-primary" /> {/* Added section icon */}
+                 Common Password Cracking Techniques
+              </h3>
+              <p className="text-muted-foreground text-sm md:text-base mb-4">
+                Attackers leverage sophisticated methods and powerful hardware:
+              </p>
+              <ul className="space-y-3 text-sm">
+                <li className="flex items-start gap-3">
+                  <BookOpen size={18} className="text-primary/80 mt-0.5 shrink-0" />
+                  <span><strong className="text-slate-600">Dictionary Attacks:</strong> Trying words, names, common phrases, and billions of passwords leaked from previous breaches.</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Wand2 size={18} className="text-primary/80 mt-0.5 shrink-0" />
+                  <span><strong className="text-slate-600">Rule-Based Attacks:</strong> Applying common transformations to dictionary words (e.g., adding '123', substituting '@' for 'a', capitalizing first letter).</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Gauge size={18} className="text-primary/80 mt-0.5 shrink-0" />
+                  <span><strong className="text-slate-600">Optimized Brute-Force:</strong> Systematically trying character combinations, prioritized by likelihood. Modern GPUs test trillions of combinations per second against weaker hashes.</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Users size={18} className="text-primary/80 mt-0.5 shrink-0" />
+                  <span><strong className="text-slate-600">Credential Stuffing:</strong> Automatically trying username/password pairs stolen from one breach against countless other websites, exploiting password reuse.</span>
+                </li>
+              </ul>
+            </section>
+
+            {/* Section: Speed of Compromise */}
+            <section>
+               <h3 className="text-lg font-semibold text-slate-700 mb-4 flex items-center gap-2">
+                 <Clock size={18} className="text-primary" /> {/* Added section icon */}
+                 The Speed of Compromise
+              </h3>
+              <p className="text-muted-foreground text-sm md:text-base mb-4">
+                Analysis of large breached password datasets reveals alarming statistics:
+              </p>
+              <div className="grid sm:grid-cols-3 gap-4 text-center"> {/* Grid layout for stats */}
+                 <div className="bg-red-50/70 border border-red-200/80 rounded-lg p-3">
+                     <Zap size={20} className="text-red-500 mx-auto mb-1"/>
+                     <p className="text-2xl font-bold text-red-600">~45%</p>
+                     <p className="text-xs text-red-700">Cracked Instantly (&lt; 1 min)</p>
+                 </div>
+                 <div className="bg-amber-50/70 border border-amber-200/80 rounded-lg p-3">
+                     <Clock size={20} className="text-amber-500 mx-auto mb-1"/>
+                     <p className="text-2xl font-bold text-amber-600">~60%</p>
+                      <p className="text-xs text-amber-700">Cracked within 1 Hour</p>
+                 </div>
+                 <div className="bg-emerald-50/70 border border-emerald-200/80 rounded-lg p-3">
+                     <ShieldCheck size={20} className="text-emerald-500 mx-auto mb-1"/>
+                     <p className="text-2xl font-bold text-emerald-600">~20-25%</p>
+                      <p className="text-xs text-emerald-700">Resilient (&gt; 1 Year)</p>
+                 </div>
+              </div>
+               <p className="text-xs text-center mt-3 text-slate-500">
+                 (Based on typical findings in security research analyzing common password weaknesses)
+               </p>
+            </section>
+
+            {/* Section: Key Insights */}
+            <section className="space-y-4">
+                {/* Insight 1: Complexity vs Reality */}
+                <div className="flex items-start gap-3 bg-blue-50/60 border border-blue-200/70 rounded-lg p-4">
+                    <Lightbulb size={24} className="text-blue-600 shrink-0 mt-1" />
+                    <div>
+                        <h4 className="font-semibold text-blue-800 mb-1">Insight: Perceived Complexity vs. Reality</h4>
+                        <p className="text-sm text-blue-700 leading-relaxed">
+                            Human intuition about 'complex' passwords (like `P@$$wOrd!`) often fails. Simple substitutions and common patterns offer negligible defense against automated cracking tools designed to check these variations instantly.
+                        </p>
+                    </div>
+                </div>
+
+                {/* Insight 2: Entropy & Length */}
+                 <div className="flex items-start gap-3 bg-blue-50/60 border border-blue-200/70 rounded-lg p-4">
+                    <KeyRound size={24} className="text-blue-600 shrink-0 mt-1" /> {/* Changed icon */}
+                    <div>
+                        <h4 className="font-semibold text-blue-800 mb-1">Insight: Entropy is Key</h4>
+                        <p className="text-sm text-blue-700 leading-relaxed">
+                           True security comes from <strong className="font-medium">mathematical entropy</strong>, primarily driven by <strong className="font-medium">length and true randomness</strong> within the chosen character set. Each additional random character exponentially increases cracking time.
+                        </p>
+                    </div>
+                </div>
+
+                {/* Insight 3: Hardware Advancements */}
+                <div className="flex items-start gap-3 bg-blue-50/60 border border-blue-200/70 rounded-lg p-4">
+                    <TrendingUp size={24} className="text-blue-600 shrink-0 mt-1" />
+                    <div>
+                        <h4 className="font-semibold text-blue-800 mb-1">Insight: Hardware Gets Faster</h4>
+                        <p className="text-sm text-blue-700 leading-relaxed">
+                            Rapid improvements in computing power (especially GPUs) mean password length recommendations become outdated. Passwords considered 'strong' years ago might be crackable in hours or days today. Ongoing vigilance is necessary.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+
+            {/* Section: Recommendations */}
+            <section className="mt-8 pt-6 border-t border-slate-300/60"> {/* Added top border */}
+               <h3 className="text-lg font-semibold text-slate-700 mb-4 text-center">Key Recommendations</h3>
+                <div className="bg-primary/5 rounded-lg p-5 text-center space-y-3">
+                    <p className="text-sm md:text-base text-slate-700 leading-relaxed">
+                        This reality underscores the critical importance of adopting robust security practices:
+                    </p>
+                    <ul className="space-y-2 text-sm text-slate-600 inline-block text-left max-w-lg mx-auto"> {/* Centered list */}
+                        <li className="flex items-center gap-2">
+                            <KeyRound size={16} className="text-primary shrink-0"/>
+                            <span>Use a <strong className="text-slate-700">Password Manager</strong> to generate and store strong, unique passwords.</span>
+                        </li>
+                         <li className="flex items-center gap-2">
+                            <ShieldCheck size={16} className="text-primary shrink-0"/>
+                            <span>Enable <strong className="text-slate-700">Multi-Factor Authentication (MFA)</strong> everywhere possible.</span>
+                        </li>
+                         <li className="flex items-center gap-2">
+                            <BookOpen size={16} className="text-primary shrink-0"/>
+                            <span>Stay informed about <strong className="text-slate-700">phishing and social engineering</strong> tactics.</span>
+                        </li>
+                    </ul>
+                    <p className="text-xs text-slate-500 pt-2">
+                        Cybersecurity requires ongoing vigilance to safeguard your digital life.
+                    </p>
+                </div>
+            </section>
+
           </div>
         </div>
       </section>
