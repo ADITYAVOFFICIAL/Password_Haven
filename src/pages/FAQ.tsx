@@ -1,8 +1,7 @@
 // src/pages/FAQ.tsx or src/components/FAQ.tsx
-// Adjust the path based on your project structure
 
-import { useState, useEffect, ReactNode } from "react";
-import { Layout } from "@/components/Layout"; // Adjust path if needed
+import React, { useState, useEffect, ReactNode } from "react"; // Import React explicitly
+import { Layout } from "@/components/Layout";
 import {
   ChevronDown,
   HelpCircle,
@@ -10,224 +9,24 @@ import {
   Search,
   AlertTriangle,
   Key,
-  Zap, // Added icon
-  Database, // Added icon
+  Zap,
+  Database,
+  Lock,
+  Users,
+  Fingerprint,
+  Server,
+  ShieldAlert,
+  Smartphone,
 } from "lucide-react";
-import { cn } from "@/lib/utils"; // Adjust path if needed
-import { useIsMobile } from "@/hooks/useIsMobile"; // Adjust path if needed
-import { Link } from "react-router-dom"; // Assuming you use react-router-dom
-import { Button } from "@/components/ui/button"; // Adjust path if needed
+import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/useIsMobile";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
-// --- Updated & Expanded Data Structure for FAQ ---
-
-const FAQ_CATEGORIES = {
-  general: {
-    title: "General",
-    icon: <HelpCircle size={16} className="text-inherit" />, // Matched size/style
-    items: [
-      {
-        question: "What is the Password Strength Analyzer?",
-        answer:
-          "Our Password Strength Analyzer is an advanced tool that evaluates how secure your password is using multiple factors including length, character variety, entropy, common patterns, and similarity to known compromised passwords. It provides real-time feedback, AI-powered suggestions, and time-to-crack estimates based on modern password cracking techniques.",
-      },
-      {
-        question: "How does the password strength analyzer work?",
-        answer:
-          "Our analyzer evaluates multiple factors: 1) Character composition (length, uppercase, lowercase, numbers, symbols), 2) Entropy calculation, 3) Pattern detection (common words, sequences, keyboard patterns), 4) Cross-reference with breached password databases (using k-anonymity), and 5) AI analysis for vulnerabilities. We then calculate estimates of how long it would take modern computers to crack your password using various attack methods.",
-      },
-      {
-        question: "Is my password stored anywhere when I use this tool?",
-        answer:
-          "No, absolutely not. Your password is never stored, logged, or sent to any server in its original form. All analysis primarily happens directly within your browser. When checking against breach databases, we use a secure k-anonymity model which only sends a partial hash, never the password itself, ensuring your privacy.",
-      },
-       {
-        question: "Why should I use this tool instead of just a password manager generator?",
-        answer:
-          "Password manager generators are excellent for creating strong, random passwords. This tool serves a different purpose: 1) Education: It helps you understand *why* certain passwords are weak or strong. 2) Evaluation: You can test password *ideas* or *patterns* you're considering before using them. 3) Existing Passwords: You can check the strength of older passwords (use similar variations, not exact ones for high-value accounts) to see if they need updating. 4) Master Passwords: It helps assess the strength of your crucial password manager master password."
-      },
-      {
-        question: "Can I trust this tool with my sensitive passwords?",
-        answer:
-          "Yes. We've designed this tool with privacy as the top priority. Your password is never transmitted over the network in its original form, all analysis happens locally in your browser, and we use secure cryptographic techniques when checking against breach databases. However, as a best practice, we recommend not entering your *exact*, current high-value passwords (like banking), but rather testing similar passwords or patterns to understand their strength.",
-      },
-      {
-        question: "Why do I need a strong password if I use 2FA/MFA?",
-        answer:
-          "While 2FA/MFA provides an excellent additional layer of security, a strong password remains your first line of defense. Attackers constantly develop new methods, and some sophisticated attacks (like session hijacking or MFA fatigue) can potentially bypass MFA, especially if they already possess your password. A strong, unique password minimizes the initial risk. Think of it as having both a strong lock and an alarm system – they work best together.",
-      },
-       {
-        question: "Is this tool free to use?",
-        answer:
-          "Yes, the Password Strength Analyzer is completely free to use. Our goal is to provide accessible security education and tools to help everyone improve their online safety.",
-      },
-    ],
-  },
-  analysis: {
-    title: "Password Analysis",
-    icon: <Search size={16} className="text-inherit" />,
-    items: [
-      {
-        question: "What makes a strong password?",
-        answer:
-          "A strong password generally combines several key characteristics: 1) **Length:** 16+ characters is highly recommended for critical accounts. 2) **Complexity:** A mix of uppercase letters, lowercase letters, numbers, and symbols. 3) **Unpredictability:** Avoids common dictionary words, names, dates, sequences (abc, 123), or keyboard patterns (qwerty). 4) **Uniqueness:** Never reused across different websites or services. 5) **High Entropy:** Mathematically random and hard to guess.",
-      },
-      {
-        question: "What are 'Time-to-Crack' estimates based on?",
-        answer:
-          "Our Time-to-Crack estimates are calculated based on current computational power and widely used password-cracking techniques (like those employed by tools such as Hashcat). We model scenarios including: 1) **Offline Slow Hash (Brute Force):** Simulates attacks against strong hashing algorithms (like bcrypt) where each guess takes longer. 2) **Offline Fast Hash (Smart Guessing):** Simulates attacks against weaker hashes (like MD5) using optimized guessing based on patterns and dictionaries. Estimates account for the password's length, complexity, entropy, and recognized patterns.",
-      },
-      {
-        question: "Why does my seemingly complex password get a low score?",
-        answer:
-          "This often happens because while the password looks random to a human, it contains patterns easily detected by cracking software. Common reasons include: 1) Using dictionary words with simple substitutions (e.g., P@ssw0rd). 2) Following predictable patterns (e.g., CapitalWord + Year + Symbol!). 3) Using keyboard sequences (e.g., 'qazwsx123'). 4) Reusing parts of usernames or website names. 5) The password, or a very similar one, exists in known breach lists.",
-      },
-      {
-        question: "What is password entropy and why does it matter?",
-        answer:
-          "Entropy, measured in bits, quantifies the randomness or unpredictability of your password. Each bit of entropy doubles the number of possible passwords a brute-force attacker would need to try. Higher entropy means exponentially more security. For example, a password with 60 bits of entropy is vastly stronger than one with 30 bits. Aiming for 80+ bits (achievable with ~12-14 truly random characters using all types) provides excellent protection against brute-force attacks with current technology.",
-      },
-       {
-        question: "Does adding just one symbol or number significantly improve strength?",
-        answer:
-          "It depends. Adding a single symbol or number to a very weak password (like 'password' becoming 'password!') offers minimal improvement against modern cracking tools, as this is a common pattern they check immediately. However, adding diverse characters to an already reasonably long and complex password significantly increases the *keyspace* (total possible combinations) and thus raises the brute-force cracking time and entropy.",
-      },
-      {
-        question: "Why does my password show as potentially breached?",
-        answer:
-          "This indicates that your password, or a password following the same pattern, has likely appeared in one or more publicly known data breaches. Attackers compile massive lists of these breached passwords (billions exist) and use them in 'dictionary' and 'credential stuffing' attacks. Even if *your* specific account wasn't breached using that password, the fact that the password is 'known' makes it extremely risky to use anywhere.",
-      },
-      {
-        question: "How accurate are the entropy calculations?",
-        answer:
-          "Our entropy calculations (often based on libraries like zxcvbn) provide a good estimate based on character set and length, factoring in deductions for common patterns, words, and sequences. It's more accurate than simply calculating theoretical entropy based on length alone. However, it's still an estimate; extremely complex or novel patterns might not be fully penalized, while very obscure dictionary words might be missed. It's a strong guide but not an absolute guarantee.",
-      },
-      {
-        question: "What does 'Smart Guessing' mean in the Time-to-Crack estimates?",
-        answer:
-          "Smart Guessing (also related to dictionary attacks and pattern analysis) refers to cracking techniques that prioritize likely password candidates over random brute-force. These algorithms use massive dictionaries of real-world passwords, common words, names, dates, apply transformation rules (like adding '123' or '!' at the end, substituting 'a' with '@'), and check for keyboard patterns. This is highly effective against human-created passwords, often cracking them millions of times faster than pure brute-force.",
-      },
-    ],
-  },
-  security: {
-    title: "Security & Privacy",
-    icon: <Shield size={16} className="text-inherit" />,
-    items: [
-      {
-        question: "What breach databases does this tool reference?",
-        answer:
-          "Our tool checks for patterns and known passwords found in major publicly documented data breaches. This includes massive compilations like RockYou, Collection #1-#5, BreachCompilation, and specific large breaches from services like LinkedIn, Adobe, MySpace, Canva, etc. We utilize the Have I Been Pwned (HIBP) Pwned Passwords dataset, which contains billions of passwords seen in breaches, accessed via the secure k-anonymity API.",
-      },
-        {
-        question: "How does the 'k-anonymity' check protect my password?",
-        answer:
-          "The k-anonymity model ensures we can check if your password is in a breach database without ever sending the full password (or even its full hash) to any external service. Here's how: 1) Your password is hashed locally using SHA-1. 2) Only the first 5 characters of that hash are sent to the HIBP API. 3) The API returns a list of all hash suffixes (the part *after* the first 5 characters) in the database that start with those same 5 characters. 4) Your browser locally compares your *full* hash against that returned list. Your actual password or full hash never leaves your device.",
-      },
-      {
-        question: "How can I check if my *email* has been in a data breach?",
-        answer:
-          "While our tool focuses on password security, the best resource for checking email breaches is Troy Hunt's 'Have I Been Pwned' website (haveibeenpwned.com). You can enter your email address there to see if it has appeared in known data breaches. If it has, you should immediately change the passwords for the affected accounts and any others where you might have reused that password.",
-      },
-      {
-        question: "Are the AI-generated suggestions secure?",
-        answer:
-          "The AI suggestions aim to improve upon your entered password by addressing identified weaknesses (like adding complexity, length, or breaking patterns) based on security best practices. They are generally much stronger. However, true randomness is hard for AI to guarantee perfectly. For maximum security, especially for critical accounts, using a dedicated password manager to generate a fully random password is still the gold standard.",
-      },
-      {
-        question: "Why does the score sometimes change slightly for the same password?",
-        answer:
-          "Password scoring is complex and relies on continuously updated data and algorithms. Minor score variations might occur due to: 1) Updates to the underlying password analysis library (like zxcvbn). 2) Updates to the breach datasets used for comparison (though this usually only flags previously safe passwords as pwned). 3) Potential A/B testing or refinements in our specific scoring adjustments or AI analysis components. Significant changes are rare unless a major vulnerability is discovered or datasets are updated.",
-      },
-      {
-        question: "What security measures are in place for the AI analysis?",
-        answer:
-            "When AI analysis is used (e.g., via Google Gemini), the password and its context are sent securely over HTTPS. We configure the API calls not to store or log the input data on the AI provider's side where possible. However, the most sensitive analysis (like breach checks via k-anonymity and core zxcvbn scoring) happens locally in your browser to minimize data exposure."
-      },
-    ],
-  },
-  techniques: {
-    title: "Password Techniques",
-    icon: <Key size={16} className="text-inherit" />,
-    items: [
-      {
-        question: "What are the most common password cracking techniques?",
-        answer:
-          "Attackers use various methods: 1) **Dictionary Attacks:** Trying words from dictionaries, lists of common passwords, and breach data. 2) **Brute Force:** Systematically trying every possible character combination (slow but eventually effective for short passwords). 3) **Rule-Based Attacks:** Applying transformations to dictionary words (e.g., 'password' -> 'P@ssword1!'). 4) **Pattern Matching:** Targeting predictable human patterns (e.g., NameYYYY, KeyboardWalks). 5) **Credential Stuffing:** Using username/password pairs stolen from one site on other sites. 6) **Rainbow Table Attacks:** Using precomputed hashes to speed up cracking (less effective with proper salting).",
-      },
-      {
-        question: "How long should my password be in 2024 and beyond?",
-        answer:
-          "Length is crucial. For standard online accounts, **12-15 characters** is a good minimum baseline. For critical accounts (email, banking, password manager), **16-20 characters or more** is strongly recommended. Longer is generally better, especially when using passphrases, as each additional character exponentially increases the brute-force cracking time.",
-      },
-      {
-        question: "Are passphrases (e.g., 'correct horse battery staple') really secure?",
-        answer:
-          "Yes, long passphrases made of *randomly chosen* words can be extremely secure and often easier to remember than complex shorter strings. The XKCD method ('correct horse battery staple') demonstrated this well. The security comes from the length. Four random common words offer significant entropy. However, avoid common *phrases* or predictable sequences of words. Adding a number or symbol can enhance them further.",
-      },
-      {
-        question: "How often should I change my passwords?",
-        answer:
-          "Modern security guidance has shifted away from mandatory, scheduled password changes (e.g., every 90 days), as this often leads users to create weaker, predictable passwords. Instead, best practice is to use a **strong, unique password** for every account and change it only when necessary: 1) If you suspect the account or password has been compromised. 2) After a service announces a data breach involving user credentials. 3) If you accidentally shared or exposed the password.",
-      },
-       {
-        question: "What is 'salting' in password hashing?",
-        answer:
-          "Salting is a critical security technique. Before hashing a password, a unique, random value (the 'salt') is added to it. This salt is then stored alongside the hash in the database. When a user logs in, the stored salt is retrieved, added to the entered password, and *then* hashed for comparison. Salting ensures that even if two users have the identical password, their stored hashes will be different. This prevents attackers from using precomputed 'rainbow tables' to crack many passwords at once.",
-      },
-      {
-        question: "What's the difference between bcrypt, scrypt, and Argon2?",
-        answer:
-          "These are all modern, recommended password hashing functions designed to be slow and computationally expensive, making brute-force attacks much harder. **bcrypt** is the oldest, widely used, and well-tested. **scrypt** is designed to be even more memory-intensive than bcrypt, offering better resistance against custom hardware attacks (ASICs). **Argon2** is the winner of the Password Hashing Competition (2015) and is highly configurable, offering strong resistance against GPU cracking and various tradeoffs between memory and CPU cost (Argon2d, Argon2i, Argon2id). Argon2id is often recommended today.",
-      },
-       {
-        question: "Is it safe to let my browser save my passwords?",
-        answer:
-          "Modern browser password managers (Chrome, Firefox, Edge, Safari) have significantly improved their security and offer convenience. They are generally much better than reusing passwords or using weak ones. However, dedicated password manager applications usually offer more features (secure sharing, breach monitoring, better cross-platform support, potentially stronger encryption/master password handling) and are often considered a more robust solution, especially if your device itself might be compromised.",
-      },
-    ],
-  },
-  troubleshooting: {
-    title: "Troubleshooting",
-    icon: <AlertTriangle size={16} className="text-inherit" />,
-    items: [
-       {
-        question: "Why is the 'Time to Crack' estimate different from other tools?",
-        answer:
-          "Password strength estimation isn't standardized. Different tools use different algorithms, hardware assumptions, and datasets. Our tool uses the zxcvbn library (popular and well-regarded) combined with breach data checks and AI analysis. We aim for realistic estimates based on modern cracking capabilities (including GPU acceleration). Some tools might only check length/complexity, giving a false sense of security, while others might use older hardware models. Focus on the *relative* strength and the specific warnings provided.",
-      },
-      {
-        question: "The tool seems slow when I type. Why?",
-        answer:
-          "Password analysis, especially involving pattern matching, entropy calculation, and potentially AI calls, is computationally intensive. This complex analysis runs in real-time as you type to provide immediate feedback. Slower devices or very long/complex passwords might experience a slight delay. We continuously optimize performance, but thorough analysis takes processing power.",
-      },
-      {
-        question: "I'm seeing a network error when checking breaches. What should I do?",
-        answer:
-          "This usually indicates a temporary issue connecting to the Have I Been Pwned (HIBP) API used for the k-anonymity breach check. Please check your internet connection. If the issue persists, the HIBP service itself might be experiencing temporary downtime or high load. The rest of the password analysis should still function correctly. You can try again later.",
-      },
-       {
-        question: "Why are AI features sometimes unavailable or giving errors?",
-        answer:
-          "The AI features rely on external services (like Google Gemini). Availability can depend on: 1) Service Status: The AI provider might have temporary outages. 2) API Keys: If the tool requires an API key for the AI service, it might be missing, invalid, or rate-limited. 3) Network Issues: Connectivity problems between your browser and the AI service. The core analysis features will typically still work even if the AI enhancement fails.",
-       },
-      {
-        question: "How can I report a bug or suggest an improvement?",
-        answer:
-          "We appreciate feedback! If you find a bug, have a suggestion, or think the analysis for a specific password is inaccurate, please look for a 'Feedback' link or contact information on the site. Providing the password you tested (if comfortable) and the results you received helps us diagnose issues and improve the tool.",
-      },
-      {
-        question: "Does the tool work offline?",
-        answer:
-          "Yes, absolutely. All password analysis, including strength scoring, pattern detection, and entropy calculation, happens entirely within your web browser. Your password is never sent to any external server, ensuring complete privacy and security. This means you can safely use the tool even without an internet connection."
-      },
-    ],
-  },
-};
-
-
-// --- Type Definitions (Copied from previous step) ---
+// --- Type Definitions ---
 interface FaqItem {
     question: string;
-    answer: string;
+    answer: string | ReactNode;
 }
 
 interface FaqCategory {
@@ -235,6 +34,89 @@ interface FaqCategory {
     icon: ReactNode;
     items: FaqItem[];
 }
+
+// --- FAQ Data (Using the previously expanded version) ---
+const FAQ_CATEGORIES: Record<string, FaqCategory> = {
+    general: {
+        title: "General",
+        icon: <HelpCircle size={16} className="text-inherit" />, // Keep size prop on icon
+        items: [
+          { question: "What is the Password Strength Analyzer?", answer: "Our Password Strength Analyzer is an advanced tool designed to evaluate how secure your password is. It examines multiple factors including length, character variety (uppercase, lowercase, numbers, symbols), entropy (randomness), common patterns (like dictionary words, sequences, keyboard layouts), and checks against known compromised password lists using secure methods. It provides real-time feedback, AI-powered suggestions for improvement, and estimates how long it might take for attackers to crack your password." },
+          { question: "How does the password strength analyzer work?", answer: (<>Our analyzer uses a multi-layered approach:<ol className="list-decimal pl-6 mt-2 space-y-1 text-sm"><li><strong>Character Composition:</strong> Checks length and the mix of character types (uppercase, lowercase, numbers, symbols).</li><li><strong>Entropy Calculation:</strong> Measures the password's randomness in bits. Higher entropy means more unpredictability.</li><li><strong>Pattern Detection:</strong> Uses libraries like zxcvbn to identify common dictionary words, names, dates, sequences (abc, 123), keyboard patterns (qwerty), and simple substitutions (P@ssw0rd).</li><li><strong>Breach Check (k-Anonymity):</strong> Securely checks if your password (or a hash prefix) appears in the massive Have I Been Pwned database of breached passwords without sending your actual password.</li><li><strong>AI Analysis (Optional):</strong> Leverages AI models to identify more subtle vulnerabilities or suggest context-aware improvements based on common attack vectors.</li><li><strong>Crack Time Estimation:</strong> Calculates estimated times to crack based on the password's entropy and detected weaknesses, simulating various attack scenarios (brute-force, dictionary attacks) on modern hardware.</li></ol></>) },
+          { question: "Is my password stored anywhere when I use this tool?", answer: "No, absolutely not. Privacy is paramount. Your password is **never** stored, logged, or transmitted to our servers or any third-party servers in its original, readable form. All core analysis (strength scoring, pattern matching) happens directly within your browser using JavaScript. For breach checks, only an anonymized hash prefix is sent (see k-anonymity explanation). AI analysis sends data securely but is configured not to log input where possible." },
+          { question: "Why should I use this tool instead of just a password manager generator?", answer: "Password manager generators excel at creating strong, random passwords – which is ideal! This tool complements them by serving different purposes: 1) **Education:** Understand *why* certain passwords (even complex-looking ones) are weak or strong. Learn about entropy, patterns, and crack times. 2) **Evaluation:** Test password *ideas* or *patterns* you might be considering before actually using them. 3) **Existing Passwords:** Check the strength of older passwords (use similar variations, not exact ones for high-value accounts) to see if they urgently need updating. 4) **Master Passwords:** Assess the strength of your crucial password manager master password (again, test variations, not the exact one if possible). 5) **Policy Compliance:** Check if a password meets specific complexity requirements (though our focus is on real-world strength)." },
+          { question: "Can I trust this tool with my sensitive passwords?", answer: "We've designed the tool with security and privacy as top priorities. Analysis happens locally, and breach checks use secure k-anonymity. However, for maximum peace of mind, especially regarding your most critical passwords (like primary email, banking, password manager master password), we recommend testing *variations* or *similar patterns* rather than entering the exact, current password. This allows you to gauge strength without exposing the actual credential, adhering to the principle of least exposure." },
+          { question: "Why do I need a strong password if I use 2FA/MFA?", answer: "Multi-Factor Authentication (MFA) is a vital security layer, but a strong password remains your crucial first line of defense. Attackers constantly evolve; sophisticated phishing, SIM swapping, session hijacking, or MFA fatigue attacks can potentially bypass MFA, especially if the attacker already possesses your password. A strong, unique password significantly reduces the initial attack surface and makes successful attacks much harder. Think of it as having both a strong deadbolt (password) and a security alarm (MFA) – they work best in tandem." },
+          { question: "Is this tool free to use?", answer: "Yes, the core functionality of the Password Strength Analyzer is completely free to use. Our aim is to provide accessible security education and tools to empower everyone to enhance their online safety." },
+          { question: "What are the limitations of this tool?", answer: "While comprehensive, the tool has limitations: 1) **Crack Time Estimates are Approximations:** They are based on current public knowledge of hardware and algorithms; dedicated attackers might have more resources. 2) **Entropy Calculation is an Estimate:** It's based on known patterns; novel or extremely complex patterns might not be fully accounted for. 3) **Breach Checks Aren't Exhaustive:** It checks against known public breaches (like HIBP), but cannot account for private breaches or future leaks. 4) **Context Matters:** The tool doesn't know where the password will be used (e.g., a low-risk forum vs. banking). Always use stronger passwords for more sensitive accounts." },
+        ]
+    },
+    analysis: {
+        title: "Password Analysis",
+        icon: <Search size={16} className="text-inherit" />, // Keep size prop on icon
+        items: [
+          { question: "What makes a strong password?", answer: "A strong password typically exhibits several key characteristics: 1) **Length:** Crucial. Aim for 15+ characters for standard accounts, 20+ for critical ones. 2) **Complexity:** A mix of uppercase letters (A-Z), lowercase letters (a-z), numbers (0-9), and symbols (!@#$%^&*...). 3) **Unpredictability:** Avoids dictionary words, common names, dates, personal information, sequences (abc, 123), or keyboard patterns (qwerty). 4) **Uniqueness:** Must be unique to each account. Never reuse passwords. 5) **High Entropy:** Mathematically random and difficult to guess, measured in bits (aim for 80+ bits). Generated passwords from managers are best for achieving this." },
+          { question: "What are 'Time-to-Crack' estimates based on?", answer: "These estimates model how long it might take an attacker using specific hardware and techniques to guess your password. Our calculations consider: 1) **Password Entropy:** The calculated randomness. 2) **Detected Weaknesses:** Penalties are applied for dictionary words, patterns, sequences, etc. 3) **Assumed Cracking Power:** We model scenarios based on publicly known capabilities of modern hardware (like high-end GPUs using tools like Hashcat) performing billions or trillions of guesses per second. 4) **Hashing Algorithm (Simulated):** Estimates often differentiate between attacks on fast hashes (like MD5, easier to crack) and slow hashes (like bcrypt, much harder). They are *estimates*, not guarantees." },
+          { question: "Why does my seemingly complex password get a low score?", answer: "This is common! It usually means that while the password *looks* random to a human, it contains patterns easily detected by cracking software like zxcvbn. Reasons include: 1) **Dictionary Words with Substitutions:** 'P@ssw0rd1!' is trivial for crackers. 2) **Predictable Patterns:** 'CompanyName2024!' or 'MonthYear!'. 3) **Keyboard Sequences:** 'qaz123wsx' or similar walks. 4) **Reused Components:** Using parts of usernames, website names, or previous passwords. 5) **Common Structures:** Capital letter + word + number + symbol is a pattern itself. 6) **Presence in Breach Lists:** Even complex-seeming passwords might have been leaked previously." },
+          { question: "What is password entropy and why does it matter?", answer: "Entropy, measured in bits, quantifies the randomness and unpredictability of your password. Think of it as the number of 'guesses' an attacker would need, on average, to find it via brute force. Each additional bit of entropy *doubles* the search space (possible passwords). Higher entropy means exponentially greater security against guessing attacks. For perspective: a weak password might have 20-30 bits, a decent one 60-70 bits, while a strong, randomly generated password often exceeds 100 bits. Aiming for 80+ bits provides robust protection against current brute-force technology." },
+          { question: "Does adding just one symbol or number significantly improve strength?", answer: "It depends entirely on the base password. Adding '!' to 'password' (making 'password!') offers almost **no real improvement** because 'add symbol at end' is one of the first rules crackers apply. However, adding diverse character types *randomly* within an already reasonably long password significantly increases the *keyspace* (total possible combinations) and thus raises entropy and the brute-force cracking time. Complexity matters most when combined with length and randomness." },
+          { question: "Why does my password show as potentially breached?", answer: "This means your password, or one following a very similar pattern, has likely appeared in one or more publicly known data breaches compiled in databases like Have I Been Pwned. Attackers use these massive lists (containing billions of credentials) for 'dictionary' and 'credential stuffing' attacks. Even if *your* specific account wasn't breached using that password, the fact that the password is 'known' and circulating makes it extremely risky to use anywhere, as attackers will try it." },
+          { question: "How accurate are the entropy calculations?", answer: "Our entropy calculations (primarily using the zxcvbn library) provide a sophisticated estimate. They go beyond simple character set and length calculations by actively identifying and penalizing common patterns, words, sequences, substitutions, and reused elements. This makes them much more realistic than basic theoretical calculations. However, it's still an *estimate*. Extremely novel or complex patterns might not be fully penalized, and very obscure dictionary words could be missed. It's a strong indicator but not an absolute guarantee of security." },
+          { question: "What does 'Smart Guessing' mean in the Time-to-Crack estimates?", answer: "'Smart Guessing' (related to dictionary attacks, rule-based attacks, and pattern analysis) refers to cracking techniques that don't just try random combinations (pure brute-force). Instead, they prioritize likely password candidates based on real-world data. Algorithms use huge dictionaries of breached passwords, common words, names, dates, apply transformation rules (append '123', substitute 'a' with '@', capitalize first letter), check for keyboard patterns, etc. This is vastly more efficient against human-created passwords, often cracking them millions or billions of times faster than pure brute-force." },
+        ]
+    },
+    security: {
+        title: "Security & Privacy",
+        icon: <Shield size={16} className="text-inherit" />, // Keep size prop on icon
+        items: [
+          { question: "What breach databases does this tool reference?", answer: "Our tool primarily utilizes the extensive 'Pwned Passwords' dataset from Have I Been Pwned (HIBP), which contains billions of passwords previously exposed in publicly known data breaches. This dataset aggregates passwords from massive historical breaches like RockYou, Collection #1-#5, LinkedIn, Adobe, MySpace, Canva, and many others. We access this data securely using the k-anonymity API." },
+          { question: "How does the 'k-anonymity' check protect my password?", answer: (<>The k-anonymity model is a privacy-preserving technique allowing us to check for breaches without exposing your password:<ol className="list-decimal pl-6 mt-2 space-y-1 text-sm"><li>Your browser calculates the SHA-1 hash of the password you enter.</li><li>Only the **first 5 characters** of this hash are sent to the HIBP API.</li><li>The HIBP API responds with a list of all hash suffixes (the parts *after* the first 5 characters) in its database that start with those same 5 characters. This list contains your potential suffix plus many others (hence 'k-anonymity' - you're hidden among 'k' results).</li><li>Your browser then **locally** compares the *full* SHA-1 hash of your password against the received list of suffixes.</li></ol>This ensures your actual password, or even its full hash, never leaves your device during the check.</>) },
+          { question: "How can I check if my *email* has been in a data breach?", answer: (<>While this tool focuses on password strength, checking for email breaches is also crucial. The best resource is Troy Hunt's website:{" "}<a href="https://haveibeenpwned.com" target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-primary/80">Have I Been Pwned (haveibeenpwned.com)</a>. Enter your email address there to see if it has appeared in known breaches. If it has, you must change the password for the affected service(s) and any other accounts where you might have reused that password. Enable MFA on those accounts too.</>) },
+          { question: "Are the AI-generated suggestions secure?", answer: "The AI suggestions aim to significantly improve upon your input by addressing identified weaknesses (like adding complexity, increasing length, breaking patterns) based on security best practices. They are generally much stronger than typical human-generated passwords. However, achieving perfect, cryptographically secure randomness is challenging for current AI models. For maximum security on critical accounts (like your password manager master password or primary email), using a dedicated password manager's built-in generator to create a fully random, high-entropy password is still the gold standard." },
+          { question: "Why does the score sometimes change slightly for the same password?", answer: "Password scoring is complex and relies on algorithms and datasets that evolve. Minor score variations for the exact same password might occasionally occur due to: 1) **Updates to the Analysis Library:** The underlying library (like zxcvbn) might be updated with improved pattern detection or entropy calculations. 2) **Updates to Breach Datasets:** The HIBP database grows, potentially flagging a previously 'safe' password as pwned. 3) **Refinements in Scoring:** We might adjust weighting factors or AI analysis components based on new research or testing. Significant, unexplained jumps are rare." },
+          { question: "What security measures are in place for the AI analysis?", answer: "When AI analysis features are used (e.g., interacting with Google Gemini or similar models), the password and related context are transmitted securely over HTTPS to the AI provider's API. We configure these API calls, where possible and supported by the provider, with parameters intended to prevent the logging or storage of the input data on their side. However, the AI provider's own data handling policies ultimately apply. The most sensitive analyses, like core strength scoring (zxcvbn) and breach checks (k-anonymity), remain entirely local within your browser to minimize data exposure." },
+          { question: "What's the difference between hashing and encryption?", answer: "They are fundamentally different cryptographic processes: 1) **Hashing:** A one-way function. It takes an input (like a password) and produces a fixed-size string (the hash). You cannot reverse the process to get the original password from the hash. Used for verifying integrity and storing passwords securely (you hash the entered password and compare it to the stored hash). 2) **Encryption:** A two-way function. It uses a key to scramble data (plaintext) into an unreadable format (ciphertext). The same or a related key can be used to decrypt the ciphertext back into the original plaintext. Used for protecting data confidentiality during transmission or storage." },
+        ]
+    },
+    techniques: {
+        title: "Password Techniques & Concepts",
+        icon: <Key size={16} className="text-inherit" />, // Keep size prop on icon
+        items: [
+          { question: "What are the most common password cracking techniques?", answer: "Attackers employ a range of methods, often combining them: 1) **Dictionary Attacks:** Using lists of common words, names, phrases, and previously breached passwords. 2) **Brute Force:** Systematically trying every possible combination of characters (inefficient for long passwords but guaranteed to work eventually). 3) **Rule-Based Attacks:** Applying common transformations to dictionary words (e.g., 'password' -> 'P@ssword1!', 'Password2024'). 4) **Pattern Matching:** Targeting predictable human patterns (keyboard walks like 'qwerty', sequences like '123456', common structures like 'WordYear!'). 5) **Credential Stuffing:** The most common attack today; using username/password pairs stolen from one site breach on many other sites. 6) **Rainbow Table Attacks:** Using precomputed tables of hashes to quickly find matches (mitigated by proper salting). 7) **Phishing/Social Engineering:** Tricking users into revealing their passwords directly." },
+          { question: "How long should my password be in 2024 and beyond?", answer: "Length is arguably the single most important factor against brute-force attacks. General recommendations: **Minimum 15 characters** for standard online accounts. **20 characters or more** is strongly recommended for critical accounts (email, banking, password manager, cloud storage). For passphrases, aim for **4-6 random words**. Longer is always better, as each additional character exponentially increases the cracking time." },
+          { question: "Are passphrases (e.g., 'correct horse battery staple') really secure?", answer: "Yes, *if done correctly*. Long passphrases composed of **randomly chosen, unrelated words** can be extremely secure and often easier to remember than complex shorter strings. The security comes from the **length** and the **randomness** of the word selection (avoid common phrases or predictable sequences). Four truly random common words already offer significant entropy. Adding numbers or symbols enhances them further. Use methods like Diceware for generating truly random passphrases." },
+          { question: "How often should I change my passwords?", answer: "Modern security guidance (e.g., from NIST) has moved **away** from mandatory, scheduled password changes (like every 90 days) for most users, as this often leads to weaker, predictable passwords (e.g., 'PasswordSpring24', 'PasswordSummer24'). Instead, the focus is on **strength and uniqueness**. Use a strong, unique password for every account and change it **only when necessary**: 1) If you suspect the account or password has been compromised. 2) After the service announces a data breach involving credentials. 3) If you know you accidentally shared or exposed the password." },
+          { question: "What is 'salting' in password hashing?", answer: "Salting is a fundamental technique to protect stored passwords. Before a user's password is hashed, a unique, random string (the 'salt') is generated specifically for that user. This salt is combined with the password, and *then* the result is hashed. The salt itself is stored alongside the hash in the database (it's not secret). When the user logs in, the system retrieves their salt, combines it with the entered password, hashes the combination, and compares it to the stored hash. Salting ensures that even if two users choose the identical password, their stored hashes will be different, rendering precomputed rainbow tables useless." },
+          { question: "What's the difference between bcrypt, scrypt, and Argon2?", answer: "These are all modern, adaptive password hashing functions designed to be deliberately slow and resource-intensive, making brute-force attacks much more difficult and expensive for attackers. **bcrypt** is the oldest of the three, widely adopted, and well-tested; it's primarily CPU-intensive. **scrypt** was designed to be significantly more memory-intensive than bcrypt, offering better resistance against custom hardware (ASIC/FPGA) attacks. **Argon2** is the winner of the Password Hashing Competition (2015) and is considered the current state-of-the-art. It's highly configurable, offering strong resistance against GPU cracking and various tradeoffs between memory cost, CPU cost, and parallelism (variants: Argon2d, Argon2i, Argon2id). Argon2id is often the recommended variant today." },
+          { question: "Is it safe to let my browser save my passwords?", answer: "Modern browser password managers (Chrome, Firefox, Edge, Safari) have significantly improved their security (using OS-level encryption, sync encryption) and offer great convenience. They are generally **much safer** than reusing passwords or using weak ones. However, dedicated password manager applications (like Bitwarden, 1Password) usually offer more robust features: stronger encryption options for the vault itself, secure sharing, better cross-platform support, storage for secure notes/identities/keys, more advanced breach monitoring, and potentially better isolation from browser-based threats. For highest security, a dedicated manager is often preferred." },
+          { question: "What are Passkeys and how do they work?", answer: "Passkeys are a newer, phishing-resistant replacement for passwords based on public-key cryptography (WebAuthn/FIDO standards). When you create a passkey for a site, your device generates a unique pair of keys: a public key stored by the website and a private key stored securely on your device (phone, computer, security key). To log in, the website challenges your device, which uses the private key (unlocked by your fingerprint, face, or PIN) to sign the challenge. The website verifies this signature using your public key. Your private key never leaves your device, making them resistant to phishing and server-side breaches. Adoption is growing rapidly." },
+        ]
+    },
+    threats: {
+        title: "Threats & Prevention",
+        icon: <ShieldAlert size={16} className="text-inherit" />, // Keep size prop on icon
+        items: [
+          { question: "What is Phishing?", answer: "Phishing is a type of social engineering attack where attackers impersonate legitimate organizations or individuals (e.g., banks, tech companies, colleagues) via email, text message (smishing), or phone calls (vishing) to trick victims into revealing sensitive information like passwords, credit card numbers, or personal details. They often create a sense of urgency or fear. Key defenses: Be skeptical of unsolicited messages, verify sender identities, never click suspicious links or attachments, and go directly to official websites instead of using links in messages." },
+          { question: "What is Social Engineering?", answer: "Social engineering is the art of manipulating people into performing actions or divulging confidential information. Unlike technical hacking, it exploits human psychology – trust, helpfulness, fear, authority, urgency. Phishing is one type, but it also includes pretexting (creating a fabricated scenario), baiting (offering something enticing like a free download containing malware), quid pro quo (offering a service for information), and tailgating (following someone into a secure area). Awareness and skepticism are the best defenses." },
+          { question: "What is Malware and how does it steal passwords?", answer: "Malware (Malicious Software) is any software intentionally designed to cause damage or gain unauthorized access. Several types target credentials: 1) **Keyloggers:** Record every keystroke you type, capturing passwords directly. 2) **Spyware:** Monitors your activity, potentially stealing saved passwords or session cookies. 3) **Trojans:** Disguise themselves as legitimate software but contain malicious payloads, including password stealers. 4) **Phishing Malware:** Can redirect you to fake login pages hosted locally or modify browser behavior. Prevention includes using reputable antivirus, keeping software updated, avoiding suspicious downloads/attachments, and being cautious about links." },
+          { question: "What is SIM Swapping?", answer: "SIM swapping (or SIM hijacking) is an attack where a fraudster convinces your mobile carrier to transfer your phone number to a SIM card they control. They typically use social engineering or bribe carrier employees. Once they control your number, they can intercept SMS messages, including 2FA codes sent via SMS, allowing them to bypass security and take over accounts linked to that number. This highlights why app-based 2FA or hardware keys are more secure than SMS 2FA." },
+          { question: "What should I do if I think my account was compromised?", answer: (<>Act quickly:<ol className="list-decimal pl-6 mt-2 space-y-1 text-sm"><li>Immediately try to log in and **change the password** to a new, strong, unique one.</li><li>If you can log in, **enable Multi-Factor Authentication (MFA)** if it wasn't already, or review/reset existing MFA methods.</li><li>Check account settings for any changes: recovery email/phone, connected apps, email forwarding rules, security questions. Revert any unauthorized changes.</li><li>Review recent account activity for suspicious logins or actions.</li><li>**Log out all other active sessions** if the service offers this option.</li><li>Change the password on **any other site** where you might have reused the compromised password.</li><li>If it's a financial account, contact your bank/institution's fraud department immediately.</li><li>Consider reporting phishing attempts or compromises to the service provider.</li></ol></>) },
+        ]
+    },
+    troubleshooting: {
+        title: "Troubleshooting",
+        icon: <AlertTriangle size={16} className="text-inherit" />, // Keep size prop on icon
+        items: [
+          { question: "Why is the 'Time to Crack' estimate different from other tools?", answer: "Password strength estimation isn't standardized. Different tools use different algorithms (e.g., zxcvbn vs. simpler checkers), cracking hardware assumptions (CPU vs. GPU, specific models), datasets for pattern matching, and methodologies for calculating entropy or applying penalties. Our tool aims for realistic estimates based on modern GPU cracking capabilities and comprehensive pattern analysis via zxcvbn. Focus less on the absolute time (which is theoretical) and more on the *relative* strength score (0-4), the specific warnings provided, and whether the password appears in breaches." },
+          { question: "The tool seems slow when I type. Why?", answer: "Real-time password analysis, especially the sophisticated pattern matching and entropy calculations performed by libraries like zxcvbn, is computationally intensive. It needs to re-evaluate the entire password structure with every keystroke. Additionally, if AI analysis or debounced breach checks are triggered, these add further processing or network latency. Slower devices or extremely long/complex passwords might naturally experience a slight delay. We strive to optimize performance, but thorough analysis requires processing power." },
+          { question: "I'm seeing a network error when checking breaches. What should I do?", answer: "This typically indicates a temporary problem connecting to the external Have I Been Pwned (HIBP) API used for the k-anonymity breach check. Possible causes: 1) Your internet connection is down or unstable. 2) The HIBP API service itself is experiencing temporary downtime or high load (check their status if possible). 3) A browser extension or network firewall is blocking the request. The core password strength analysis (scoring, pattern matching) should still function correctly as it's local. You can try the breach check again later." },
+          { question: "Why are AI features sometimes unavailable or giving errors?", answer: "AI features rely on external API services (like Google Gemini). Unavailability or errors can occur due to: 1) **Service Outages:** The AI provider might be experiencing temporary downtime. 2) **API Key Issues:** If the tool relies on an API key, it might be missing, invalid, expired, or have hit rate limits. 3) **Network Connectivity:** Problems connecting from your browser to the AI service's servers. 4) **Content Filtering:** The AI might refuse to process input it deems potentially harmful or against its safety policies. The core, non-AI analysis features should generally remain functional." },
+          { question: "How can I report a bug or suggest an improvement?", answer: "We value user feedback! If you encounter a bug, have a suggestion for a new feature, or believe the analysis for a specific password type is inaccurate, please look for a 'Feedback', 'Contact', or 'Report Issue' link or mechanism on the site (e.g., a GitHub repository link if it's open source). Providing details like the password tested (if you're comfortable and it's not sensitive), the results you saw, your browser/OS, and steps to reproduce the issue is extremely helpful for diagnosis and improvement." },
+          { question: "Does the tool work offline?", answer: "Yes, the core password strength analysis functionality – including scoring based on length, complexity, pattern matching (via zxcvbn), entropy calculation, and providing feedback/warnings – happens **entirely within your web browser** using JavaScript. It does **not** require an internet connection for these core features. Features that inherently require network access, like the Have I Been Pwned breach check or AI-powered suggestions, will naturally not work offline." },
+        ]
+    },
+};
+
 
 // --- Main FAQ Component ---
 
@@ -249,7 +131,6 @@ const FAQ = () => {
   const isMobile = useIsMobile();
 
   useEffect(() => {
-    // Trigger animations on mount
     setMounted(true);
   }, []);
 
@@ -267,7 +148,7 @@ const FAQ = () => {
     });
   };
 
-  // --- Reusable Category Button Component (Styles aligned with SecurityTips) ---
+  // --- Reusable Category Button Component (MATCHING SecurityTips) ---
   const CategoryButton = ({
     categoryKey,
     category,
@@ -278,24 +159,30 @@ const FAQ = () => {
     <button
       key={categoryKey}
       className={cn(
-        // Shared + Desktop Sidebar styles from SecurityTips
+        // Base styles (Identical to SecurityTips)
         "w-full text-left px-3 py-2.5 rounded-lg flex items-center gap-2.5 transition-colors duration-150",
-        "text-sm", // Ensure text size matches
+        "text-sm", // Base text size
+        // Conditional styles (Applying font-medium ONLY on active)
         activeCategory === categoryKey
-          ? "bg-primary/10 text-primary font-medium" // Active state
-          : "hover:bg-slate-100/80 text-slate-700" // Hover state
+          ? "bg-primary/10 text-primary font-medium" // Active state styles
+          : "hover:bg-slate-100/80 text-slate-700" // Hover state styles (no font-medium)
       )}
       onClick={() => setActiveCategory(categoryKey)}
     >
-       {/* Ensure icon styling matches SecurityTips */}
-       <span className={cn("shrink-0", activeCategory === categoryKey ? "text-primary" : "text-slate-500")}>
+       {/* Icon Span (Rely on icon's size prop, remove w-4 h-4) */}
+       <span className={cn(
+           "shrink-0", // Basic layout
+           activeCategory === categoryKey ? "text-primary" : "text-slate-500" // Conditional color
+           // Removed explicit w-4 h-4
+        )}>
            {category.icon}
        </span>
+       {/* Text Span */}
        <span>{category.title}</span>
     </button>
   );
 
-  // --- Reusable Accordion Item Component (No changes needed from previous step) ---
+  // --- Reusable Accordion Item Component ---
   const AccordionItem = ({
     item,
     index,
@@ -306,7 +193,6 @@ const FAQ = () => {
     categoryKey: string;
   }) => {
     const isOpen = openItems[categoryKey]?.includes(index) ?? false;
-    const animationDelay = Math.min(index * 100, 500); // Cap delay
 
     return (
       <div
@@ -315,33 +201,48 @@ const FAQ = () => {
           "bg-white/40 backdrop-blur-sm border border-slate-200/50 rounded-xl shadow-sm overflow-hidden",
           "transition-all duration-300",
           mounted
-            ? `opacity-100 transform translate-y-0 delay-${animationDelay}`
+            ? `opacity-100 transform translate-y-0`
             : "opacity-0 transform translate-y-4"
         )}
         style={{ transitionProperty: 'opacity, transform' }}
       >
+        {/* Trigger Button */}
         <button
-          className="flex justify-between items-center w-full p-4 md:p-5 text-left"
+          className={cn(
+            "flex justify-between items-center w-full p-4 md:p-5 text-left transition-colors duration-150",
+            isOpen ? "bg-slate-50/50" : "hover:bg-slate-50/30"
+          )}
           onClick={() => toggleItem(categoryKey, index)}
           aria-expanded={isOpen}
           aria-controls={`faq-answer-${categoryKey}-${index}`}
         >
-          <h3 className="font-medium text-base md:text-lg">{item.question}</h3>
-          <div className="ml-4 shrink-0 text-primary transition-transform duration-300"
-               style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
+          <h3 className="font-medium text-base md:text-lg text-slate-800">{item.question}</h3>
+          <div className={cn(
+                "ml-4 shrink-0 text-primary transition-transform duration-300 transform",
+                isOpen ? "rotate-180" : "rotate-0"
+               )}
           >
             <ChevronDown size={18} />
           </div>
         </button>
+
+        {/* Content Panel */}
         <div
           id={`faq-answer-${categoryKey}-${index}`}
           className={cn(
             "overflow-hidden transition-all duration-300 ease-in-out",
-            "text-muted-foreground text-sm md:text-base px-4 md:px-5",
-            isOpen ? "max-h-[1000px] pb-4 md:pb-5 opacity-100" : "max-h-0 pb-0 opacity-0"
+            isOpen ? "max-h-[1500px] opacity-100" : "max-h-0 opacity-0"
           )}
         >
-          <p className="leading-relaxed">{item.answer}</p>
+          <div className="px-4 md:px-5 pb-4 md:pb-5 pt-1 text-muted-foreground text-sm md:text-base">
+             {typeof item.answer === 'string' ? (
+                <p className="leading-relaxed">{item.answer}</p>
+             ) : (
+                <div className="leading-relaxed prose prose-sm max-w-none prose-a:text-primary prose-strong:text-slate-700">
+                    {item.answer}
+                </div>
+             )}
+          </div>
         </div>
       </div>
     );
@@ -354,7 +255,6 @@ const FAQ = () => {
   // --- Render Logic ---
   return (
     <Layout>
-      {/* Use max-w-5xl to match SecurityTips */}
       <section className="container mx-auto px-4 py-8 md:py-12 max-w-5xl">
         {/* Page Header */}
         <div
@@ -388,24 +288,22 @@ const FAQ = () => {
           <div className="flex flex-col gap-6">
             {/* Category Buttons */}
             <div className="bg-white/30 rounded-xl border border-slate-200/50 p-3 backdrop-blur-sm">
-              {/* Use space-y-1.5 to match SecurityTips */}
               <div className="space-y-1.5">
                 {Object.entries(FAQ_CATEGORIES).map(([key, category]) => (
                   <CategoryButton
                     key={key}
                     categoryKey={key}
-                    category={category as FaqCategory}
+                    category={category}
                   />
                 ))}
               </div>
             </div>
 
             {/* Accordion Items */}
-            {/* Use space-y-5 to match SecurityTips content */}
-            <div className="space-y-5">
-              {currentCategoryData.items.map((item, index) => (
+            <div className="space-y-4">
+              {currentCategoryData && currentCategoryData.items.map((item, index) => (
                 <AccordionItem
-                  key={index}
+                  key={`${activeCategory}-${index}`}
                   item={item}
                   index={index}
                   categoryKey={activeCategory}
@@ -415,31 +313,27 @@ const FAQ = () => {
           </div>
         ) : (
           // --- Desktop Layout (Aligned with SecurityTips) ---
-          // Use grid-cols-4
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 lg:gap-8">
-            {/* Desktop Sticky Sidebar (col-span-1) */}
+            {/* Desktop Sticky Sidebar */}
             <div className="md:col-span-1">
-              {/* Use sticky top-24 and matching bg/border/padding */}
               <div className="sticky top-24 bg-white/30 rounded-xl border border-slate-200/50 p-3 backdrop-blur-sm">
-                {/* Use space-y-1.5 for button spacing */}
                 <div className="space-y-1.5">
                   {Object.entries(FAQ_CATEGORIES).map(([key, category]) => (
                     <CategoryButton
                       key={key}
                       categoryKey={key}
-                      category={category as FaqCategory}
+                      category={category}
                     />
                   ))}
                 </div>
               </div>
             </div>
 
-            {/* Accordion Items (col-span-3) */}
-             {/* Use space-y-5 for item spacing */}
-            <div className="md:col-span-3 space-y-5">
-              {currentCategoryData.items.map((item, index) => (
+            {/* Accordion Items */}
+            <div className="md:col-span-3 space-y-4">
+              {currentCategoryData && currentCategoryData.items.map((item, index) => (
                 <AccordionItem
-                  key={index}
+                  key={`${activeCategory}-${index}`}
                   item={item}
                   index={index}
                   categoryKey={activeCategory}
@@ -455,9 +349,14 @@ const FAQ = () => {
             Still have questions or want to learn more about strengthening your
             passwords?
           </p>
-          <Link to="/securitytips">
-            <Button variant="default">Explore Security Tips</Button>
-          </Link>
+          <div className="flex justify-center gap-4">
+            <Button variant="default" asChild>
+                <Link to="/securitytips">Explore Security Tips</Link>
+            </Button>
+             <Button variant="outline" asChild>
+                <Link to="/password">Analyze a Password</Link>
+            </Button>
+          </div>
         </div>
       </section>
     </Layout>

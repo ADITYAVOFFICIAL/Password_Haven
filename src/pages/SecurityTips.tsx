@@ -38,6 +38,26 @@ import { cn } from "@/lib/utils"; // Adjust path if needed
 import { useIsMobile } from "@/hooks/useIsMobile"; // Adjust path if needed
 
 // --- Data Structure for Security Tips ---
+// Define type for Tip structure
+interface SecurityTip {
+  title: string;
+  description: string;
+  icon: string; // Keep as string for mapping
+  examples?: string[];
+  importantNote?: string; // Optional field for crucial caveats
+}
+
+// Define type for Category structure
+interface SecurityCategory {
+  title: string;
+  icon: ReactNode; // Use ReactNode for direct icon usage
+  tips: SecurityTip[];
+}
+
+// Define the main structure type
+interface SecurityTipsData {
+  [key: string]: SecurityCategory;
+}
 
 const ENHANCED_SECURITY_TIPS: SecurityTipsData = {
   passwords: {
