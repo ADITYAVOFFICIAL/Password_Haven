@@ -30,7 +30,7 @@ logger_config.debug(f"Project Root directory determined as: {PROJECT_ROOT}")
 
 # --- HIBP Checker Configuration ---
 # Configuration for the offline Have I Been Pwned password checker.
-HIBP_DATA_FILENAME_DEFAULT = "pwned-passwords-sha1-ordered-by-hash-v8.txt"
+HIBP_DATA_FILENAME_DEFAULT = "hibp_pwned_passwords.txt"
 HIBP_DATA_FILENAME = os.getenv("HIBP_DATA_FILENAME", HIBP_DATA_FILENAME_DEFAULT)
 
 # Define the directory where HIBP data files (.txt and .bloom) are expected.

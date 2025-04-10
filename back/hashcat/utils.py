@@ -61,15 +61,18 @@ async def run_hashcat_async(
 
         # Construct the hashcat command
         command = [
-            hashcat_executable,
-            "-m", str(hash_mode),
-            "-a", "0", # Dictionary attack mode
-            temp_hash_file_path,
-            str(wordlist_path), # Ensure wordlist path is a string
-            "--potfile-disable",
-            # "--quiet", # Uncomment for less verbose output
-            # "--force"  # Uncomment if needed (CPU-only, driver issues) - use with caution
-        ]
+    hashcat_executable,
+    "-m", str(hash_mode),
+    "-a", "0",  # Dictionary attack mode
+    "-O",
+    temp_hash_file_path,
+    str(wordlist_path),  # Ensure wordlist path is a string
+    "--backend-ignore-opencl",
+    "--potfile-disable",
+    # "--quiet",  # Uncomment for less verbose output
+    # "--force"   # Uncomment if needed (CPU-only, driver issues) - use with caution
+]
+
 
         logger.info(f"Executing hashcat command: {' '.join(command)}")
         start_time = time.monotonic()
