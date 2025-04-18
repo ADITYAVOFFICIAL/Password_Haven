@@ -92,7 +92,7 @@ else:
      logger_config.debug(f"ML Analyzer Config: Found feature names file at: {ML_FEATURES_PATH}")
 
 # --- Ollama Analyzer Configuration ---
-# Configuration for interacting with the local Ollama service. gemma3:1b-it-fp16 for demo purposes and gemma3:4b-it-q8_0 for production
+# Configuration for interacting with the local Ollama service. gemma3:1b-it-fp16 for demo purposes and gemma3:4b-it-q8_0 for production or llama3:8b
 OLLAMA_MODEL_DEFAULT = "gemma3:1b-it-fp16" # Example model
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", OLLAMA_MODEL_DEFAULT)
 
