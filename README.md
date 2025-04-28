@@ -199,125 +199,194 @@ npm run dev
 bun run dev
 Use code with caution.
 ```
-Access the Application:
-Open your web browser and navigate to http://localhost:5173 (or the port specified by Vite/Bun).
+### Access the Application
 
-Core Features Walkthrough
-Password Analysis: Enter any password into the input field. The application performs local analysis (entropy, basic patterns) and queries the backend for AI insights, HIBP checks, and potentially crack time estimation.
+1.  Ensure the [Backend Server](#starting-the-application) and [Frontend Development Server](#starting-the-application) are running.
+2.  Open your web browser and navigate to `http://localhost:5173` (or the port specified by Vite/Bun).
 
-Hash Generation & Cracking: Use the dedicated UI section to:
+### Core Features Walkthrough
 
-Enter plaintext and select a hash type (MD5, SHA1, etc.) to generate a hash.
+1.  **Password Analysis**:
+    *   Enter any password into the main input field.
+    *   The application immediately performs local analysis (calculating entropy, identifying basic patterns like sequences or repeats).
+    *   It then queries the backend API to fetch:
+        *   **AI Insights:** Analysis and suggestions from the configured Ollama model.
+        *   **Machine Learning Score:** Strength prediction based on the trained ML model.
+        *   **HIBP Check:** Verifies if the password hash exists in the offline Have I Been Pwned database.
+        *   **Crack Time Estimation:** Estimated time to crack based on common algorithms (results may vary).
 
-Select a wordlist available on the server.
+2.  **Hash Generation & Cracking (Use Responsibly!)**:
+    *   Navigate to the dedicated Hashcat Cracking section in the UI.
+    *   **Generate Hash:** Enter a plaintext password and select a hash type (e.g., MD5, SHA1, NTLM) to generate its corresponding hash.
+    *   **Configure Attack:** Select one of the available wordlist files configured on the backend server.
+    *   **Initiate Crack:**
+        > **⚠️ Ethical Use Warning:** Click the "Crack Hash" button to send the *hash* (not the plaintext) and selected wordlist to the backend. The backend will use your local Hashcat installation to attempt a dictionary attack. **Only perform this on hashes you have explicit permission to test.** Ensure you comply with all applicable laws and ethical guidelines.
 
-Initiate a cracking attempt against the generated hash using Hashcat via the backend. Use responsibly and ethically.
+3.  **View Results**:
+    *   Examine the comprehensive results panel which displays:
+        *   Overall strength score and assessment.
+        *   Calculated entropy.
+        *   Estimated crack times (if applicable).
+        *   Detected weaknesses (dictionary words, sequences, etc.).
+        *   HIBP status (Pwned or Not Pwned).
+        *   Feedback and suggestions from the AI model.
+        *   Results from the Hashcat cracking attempt (Success/Failure, Cracked Password if found, Time Taken).
 
-View Results: Examine the detailed breakdown including strength scores, crack times, entropy, detected weaknesses, HIBP status, AI feedback, and Hashcat results (if applicable).
+4.  **Educational Resources**:
+    *   Explore the "Security Tips" and "FAQ" pages for best practices and detailed information about password security concepts.
 
-Educational Resources: Navigate to the "Security Tips" or "FAQ" sections to learn more about password security.
+## 🚀 Deployment
 
-Deployment
-Production Build
-Frontend:
+Deploying Password Haven involves building the frontend for production and running the backend server in a suitable environment.
 
-# From the frontend directory (or project root)
+### Production Build
+
+#### Frontend
+
+Run the build command from your frontend directory (or project root):
+
+```bash
+# Using npm
 npm run build
-# or
+
+# Using Bun
 bun run build
-Use code with caution.
-Bash
-This creates a dist folder with optimized static assets.
+```
 
-Backend: Ensure dependencies in requirements.txt are suitable for production. Remove --reload flag from Uvicorn command.
+This command optimizes and bundles your React application into static assets (HTML, CSS, JavaScript) located in the `dist` folder, ready for deployment on a static web host.
 
-Frontend Deployment (Example: Vercel)
-Connect your Git repository to Vercel/Netlify/etc.
+#### Backend
 
-Configure build command (e.g., npm run build).
+*   Ensure your `back/requirements.txt` lists the exact dependencies needed for production (consider pinning versions).
+*   When running the backend in production, **do not** use the `--reload` flag with `uvicorn`.
 
-Set output directory (e.g., dist).
+### Frontend Deployment (Example: Vercel/Netlify)
 
-Set environment variables (like VITE_API_URL pointing to your deployed backend).
+Platforms like Vercel, Netlify, Cloudflare Pages, or similar static hosting services are ideal for the frontend:
 
-Deploy!
+1.  **Connect Git Repository:** Link your GitHub/GitLab/Bitbucket repository to the platform.
+2.  **Configure Build Settings:**
+    *   **Build Command:** Set it to `npm run build` or `bun run build`.
+    *   **Output Directory:** Set it to `dist`.
+3.  **Set Environment Variables:** Configure the `VITE_API_URL` environment variable on the platform to point to the **publicly accessible URL** of your deployed backend API (e.g., `https://api.yourdomain.com`).
+4.  **Deploy!**
 
-Backend Deployment Options
-Docker: (Assuming a back/Dockerfile exists)
+### Backend Deployment Options
 
-# From the project root
-docker build -t password-haven-api -f back/Dockerfile .
+Choose the method that best suits your infrastructure:
 
-# Run the container (adjust volumes and env vars)
-docker run -d -p 8000:8000 \
-  --name password-haven-api \
-  -v /path/to/your/HIBP_data:/app/HIBP_data \ # Mount HIBP data
-  -v /path/to/your/wordlists:/app/wordlists \ # Mount wordlists
-  -e OLLAMA_HOST="http://<ollama_host_ip>:11434" \ # Point to accessible Ollama
-  -e HIBP_DATA_DIR="/app/HIBP_data" \
-  -e WORDLISTS_DIR="/app/wordlists" \
-  -e OLLAMA_MODEL="gemma:2b" \
-  # -e HASHCAT_PATH="/path/inside/container/if/needed" \ # Only if not in PATH within container
-  password-haven-api
-Use code with caution.
-Bash
-Note: Ensure Ollama and potentially Hashcat (if not baked into image) are accessible from the container.
+#### 🐳 Docker
 
-Kubernetes: Use deployment manifests (likely in deployment/k8s/) involving Deployments, Services, PersistentVolumes (for data), and potentially Ingress.
+(Assuming a `back/Dockerfile` is correctly configured)
 
-Server/VM: Run FastAPI using a production ASGI server like Uvicorn with Gunicorn workers, managed by systemd or supervisor.
+1.  **Build the Docker Image:**
+    ```bash
+    # Run from the project root directory
+    docker build -t password-haven-api -f back/Dockerfile .
+    ```
 
-# Example using Uvicorn with Gunicorn
-# Ensure virtual env activated, dependencies installed
-gunicorn back.main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000
-Use code with caution.
-Bash
-Environment Variables (Production)
-Frontend: VITE_API_URL (URL of deployed backend).
+2.  **Run the Docker Container:**
+    ```bash
+    docker run -d \
+      --name password-haven-api \
+      -p 8000:8000 \
+      --restart unless-stopped \
+      -v /your/local/path/to/HIBP_data:/app/HIBP_data:ro \ # Mount HIBP data (read-only recommended)
+      -v /your/local/path/to/wordlists:/app/wordlists:ro \ # Mount wordlists (read-only recommended)
+      -e API_HOST="0.0.0.0" \
+      -e API_PORT="8000" \
+      -e LOG_LEVEL="INFO" \
+      -e OLLAMA_HOST="http://<ollama_host_ip_or_hostname>:11434" \ # Accessible Ollama instance
+      -e OLLAMA_MODEL="gemma:2b" \                             # Or your chosen model
+      -e HIBP_DATA_DIR="/app/HIBP_data" \
+      -e HIBP_DATA_FILENAME="your-hibp-file.txt" \
+      -e WORDLISTS_DIR="/app/wordlists" \
+      # Optional: Only set if hashcat isn't in PATH inside the container
+      # -e HASHCAT_PATH="/path/to/hashcat/inside/container" \
+      password-haven-api
+    ```
 
-Backend: Set all required variables from back/.env (especially data paths, Ollama host, potentially HASHCAT_PATH) in the production environment (system variables, Docker -e flags, K8s secrets/configmaps). Do not commit sensitive .env files.
+    > **Notes:**
+    > *   Replace `/your/local/path/to/...` with the *actual absolute paths* on your host machine where the HIBP data and wordlists reside.
+    > *   Ensure the container can reach the `OLLAMA_HOST`. This might be a private IP if running Ollama on the same network/machine, or a service name in Docker Compose/Kubernetes.
+    > *   Make sure the `HIBP_DATA_FILENAME` matches the file you mounted.
+    > *   Ensure the `HASHCAT_PATH` (if needed) points to the correct location *inside* the container. If Hashcat is installed via the Dockerfile and added to the PATH, you likely don't need this environment variable.
 
-ML Capabilities
-Password Haven incorporates Machine Learning to enhance its analysis:
+#### ☸️ Kubernetes
 
-N-gram Character/Pattern Analysis: Models trained on datasets like RockYou learn common sequences, keyboard patterns, and character frequencies found in weak passwords.
+*   Utilize Kubernetes manifests (e.g., Deployment, Service, PersistentVolumeClaim, ConfigMap, Secret) typically located in a `deployment/k8s/` directory (if provided).
+*   You'll need PersistentVolumes for `HIBP_data` and `wordlists`.
+*   Configure environment variables using ConfigMaps and Secrets.
+*   Expose the service, potentially via an Ingress controller.
 
-Feature-Based Classification: Extracts features from passwords (length, character types, dictionary word presence, common patterns) to train classifiers (e.g., SVM, Random Forest) predicting vulnerability likelihood.
+#### ⚙️ Server/Virtual Machine
 
-Time-to-Crack Prediction: Potentially uses regression models trained on password cracking benchmarks to estimate crack times more accurately than simple entropy calculations.
+1.  Ensure Python, your virtual environment, and all dependencies from `requirements.txt` are installed.
+2.  Ensure Hashcat and Ollama (with the required model pulled) are installed and accessible.
+3.  Place HIBP data and wordlists in appropriate directories.
+4.  Set the required environment variables (see below).
+5.  Run the FastAPI application using a production-grade ASGI server like Uvicorn managed by Gunicorn, supervised by `systemd` or `supervisor` for reliability.
 
-Transfer Learning: May leverage pre-trained language or sequence models, fine-tuned on password datasets, to understand deeper structural weaknesses.
+    ```bash
+    # Example: Run with Gunicorn managing Uvicorn workers
+    # (Ensure virtual environment is activated)
+    gunicorn back.main:app \
+      --workers 4 \ # Adjust based on CPU cores
+      --worker-class uvicorn.workers.UvicornWorker \
+      --bind 0.0.0.0:8000 \
+      --log-level info
+    ```
 
-These ML components primarily run on the backend to leverage Python's data science ecosystem.
+### Environment Variables (Production)
 
-Security Considerations
-Password Privacy: Passwords for analysis are primarily processed locally in the browser or sent to the local backend/Ollama instance. They are NOT stored or logged. Hashes for cracking are processed by the local backend and Hashcat.
+**Crucial for backend deployment:**
 
-HIBP K-Anonymity / Offline: The offline check keeps HIBP lookups entirely local. If ever adapted to use the online API, k-anonymity must be maintained.
+> **🔒 Security Best Practice:** **NEVER** commit your `.env` file containing production secrets or paths to version control (Git). Use your deployment environment's mechanism for setting environment variables securely (e.g., Docker `-e` flags, Kubernetes Secrets/ConfigMaps, system environment variables, platform-specific settings).
 
-Hashcat Locality: Cracking attempts run entirely on the server hosting the backend and Hashcat. No hashes are sent to external services for cracking. Ethical use is paramount.
+*   **Frontend:**
+    *   `VITE_API_URL`: The public URL of your deployed backend API.
+*   **Backend:** Set *all* required variables from your `back/.env.example` (or `back/.env` if you created one locally for development, but **don't commit it**). Pay special attention to:
+    *   `HIBP_DATA_DIR`, `HIBP_DATA_FILENAME`
+    *   `WORDLISTS_DIR`
+    *   `OLLAMA_HOST`, `OLLAMA_MODEL`
+    *   `HASHCAT_PATH` (Only if Hashcat is not in the system PATH of the deployment environment)
+    *   `API_HOST`, `API_PORT`, `LOG_LEVEL`
 
-API Security: Implement standard practices: rate limiting, input validation, HTTPS, potentially authentication if deployed publicly.
+## 🧠 ML Capabilities
 
-Ollama Isolation: AI analysis runs locally via Ollama, preventing data leakage to third-party cloud AI providers.
+Password Haven incorporates Machine Learning (primarily on the backend) to enhance its analysis beyond standard checks:
 
-No Data Persistence: The application is designed to be stateless regarding user passwords/hashes beyond the immediate request processing.
+*   **N-gram Analysis:** Models learn common character/keyboard patterns from datasets like RockYou to identify predictable sequences often found in weak passwords.
+*   **Feature-Based Classification:** A pre-trained classifier (e.g., LightGBM) uses extracted password features (length, character types, pattern presence) to predict the likelihood of vulnerability, often correlating with zxcvbn scores but trained on real-world data patterns.
+*   **(Potential) Time-to-Crack Prediction:** While the current implementation might use standard estimates, ML regression models *could* be trained on cracking benchmarks for more nuanced time predictions.
+*   **(Potential) Transfer Learning:** Future versions *could* leverage pre-trained language models fine-tuned on password data to understand deeper structural weaknesses.
 
-Contributing
-Contributions are welcome! Please refer to the CONTRIBUTING.md file (if available) for guidelines on reporting issues, suggesting features, and submitting pull requests.
+## 🛡️ Security Considerations
 
-License
-This project is licensed under the MIT License. See the LICENSE file for full details.
+*   **Password Privacy:** Passwords entered for analysis are processed locally in the browser (for basic checks) or sent *only* to your self-hosted backend/Ollama instance. **They are NOT stored or logged by the application.**
+*   **Hash Privacy:** Hashes generated for cracking simulation are sent *only* to your self-hosted backend, which interacts with your local Hashcat instance. They are not sent to external services.
+*   **HIBP Offline Check:** Using the offline HIBP dataset ensures your passwords/hashes are never sent to the HIBP service directly, maintaining privacy.
+*   **Hashcat Locality & Ethics:** Cracking attempts run entirely on the server hosting the backend and Hashcat. **Ethical use is paramount.** Only test hashes you own or have explicit permission for.
+*   **API Security:** For public deployments, implement standard API security: HTTPS, rate limiting, input validation, and potentially API keys or authentication.
+*   **Ollama Isolation:** AI analysis runs locally via Ollama, preventing password data leakage to third-party cloud AI providers.
+*   **Stateless Design:** The application is designed to be stateless regarding user passwords and hashes beyond the immediate processing of a single request.
 
-Acknowledgements
-Have I Been Pwned: For providing the invaluable Pwned Passwords dataset.
+## 🤝 Contributing
 
-Ollama: For enabling powerful local AI model execution.
+Contributions are welcome! Please refer to the `CONTRIBUTING.md` file (if available) for guidelines on reporting issues, suggesting features, and submitting pull requests.
 
-Hashcat: For the gold-standard password recovery tool.
+## 📜 License
 
-shadcn/ui: For the fantastic UI components used in the frontend.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for full details.
 
-The developers of React, FastAPI, Tailwind CSS, and other open-source libraries used in this project.
+## 🙏 Acknowledgements
 
-Created by Aditya Verma
+*   **Have I Been Pwned:** For the invaluable Pwned Passwords dataset.
+*   **Ollama:** For enabling powerful local AI model execution.
+*   **Hashcat:** For the industry-standard password recovery tool.
+*   **shadcn/ui:** For the fantastic UI components.
+*   The developers of React, FastAPI, Tailwind CSS, Vite, LightGBM, zxcvbn, and all the other open-source libraries that made this project possible.
+
+---
+
+Created by **Aditya Verma**
